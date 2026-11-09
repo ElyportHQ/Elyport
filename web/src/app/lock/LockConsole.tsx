@@ -8,6 +8,7 @@ import { contracts, elysium } from "@/lib/config";
 import { lockerAbi } from "@/lib/abis";
 import { countdown, fmtAmount, fmtDate, short } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
+import { useMounted } from "@/lib/useMounted";
 import { LockRing } from "@/components/home/Scenes";
 
 const cid = elysium.id;
@@ -37,6 +38,7 @@ export function LockConsole() {
 }
 
 function CreateLock() {
+  const mounted = useMounted();
   const { address } = useAccount();
   const [isLP, setIsLP] = useState(true);
   const [token, setToken] = useState("");
@@ -207,7 +209,7 @@ function CreateLock() {
           <dt>Of supply</dt>
           <dd>{pct !== undefined ? `${pct}%` : "—"}</dd>
           <dt>Unlocks</dt>
-          <dd>{fmtDate(unlockAt)}</dd>
+          <dd>{mounted ? fmtDate(unlockAt) : "—"}</dd>
           <dt>Fee</dt>
           <dd>{fee.data !== undefined ? `${fmtAmount(fee.data, 18, 4)} HYPE` : "—"}</dd>
         </dl>
@@ -232,7 +234,7 @@ function CreateLock() {
               elyport/lock/[id]
             </span>
           </div>
-          <LockRing label={`Unlocks in ${countdown(unlockAt)}`} />
+          <LockRing label={mounted ? `Unlocks in ${countdown(unlockAt)}` : " "} />
         </section>
         <RecentLocks />
       </div>
@@ -241,6 +243,7 @@ function CreateLock() {
 }
 
 function RecentLocks() {
+  const mounted = useMounted();
   const recent = useReadContract({ chainId: cid, address: contracts.locker, abi: lockerAbi, functionName: "getLocks", args: [0n, 5n, true], query: { enabled: !!contracts.locker } });
   const page = recent.data?.[0] ?? [];
   const ids = recent.data?.[1] ?? [];
@@ -265,7 +268,7 @@ function RecentLocks() {
                 {l.isLP ? " LP" : ""}
               </Link>
               <span className="mono" style={{ fontSize: 13, color: "#444B57" }}>
-                {countdown(l.unlockAt)}
+                {mounted ? countdown(l.unlockAt) : "…"}
               </span>
             </li>
           ))}

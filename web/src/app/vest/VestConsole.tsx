@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { erc20Abi, isAddress, parseEventLogs, parseUnits, type Address } from "viem";
 import { contracts, elysium } from "@/lib/config";
@@ -37,7 +37,8 @@ function CreateSchedule() {
   const [single, setSingle] = useState("");
   const [list, setList] = useState("");
   const [amount, setAmount] = useState("");
-  const [start, setStart] = useState(() => new Date().toISOString().slice(0, 10));
+  const [start, setStart] = useState("");
+  useEffect(() => setStart((v) => v || new Date().toISOString().slice(0, 10)), []);
   const [cliffM, setCliffM] = useState(3);
   const [durationM, setDurationM] = useState(12);
   const [monthly, setMonthly] = useState(true);
@@ -73,7 +74,7 @@ function CreateSchedule() {
   }, [recipients, decimals]);
   const total = amounts?.reduce((a, b) => a + b, 0n) ?? 0n;
 
-  const startTs = Math.floor(new Date(`${start}T00:00:00Z`).getTime() / 1000);
+  const startTs = start ? Math.floor(new Date(`${start}T00:00:00Z`).getTime() / 1000) : 0;
   const cliff = cliffM * MONTH;
   const duration = durationM * MONTH;
   const period = monthly ? MONTH : 1;
@@ -81,7 +82,7 @@ function CreateSchedule() {
 
   const { writeContractAsync } = useWriteContract();
   const { state, run } = useChainTx(cid);
-  const ready = !!contracts.vesting && !!tokenAddr && recipients.length > 0 && !!amounts && total > 0n && cliff <= duration && fee.data !== undefined && recipients.length <= 200;
+  const ready = startTs > 0 && !!contracts.vesting && !!tokenAddr && recipients.length > 0 && !!amounts && total > 0n && cliff <= duration && fee.data !== undefined && recipients.length <= 200;
 
   async function create() {
     if (!ready || !contracts.vesting || !tokenAddr || !amounts) return;
@@ -188,7 +189,7 @@ function CreateSchedule() {
             {decimals !== undefined ? fmtAmount(total, decimals) : "—"} {symbol ?? ""}
           </dd>
           <dt>First release</dt>
-          <dd>{fmtDate(startTs + (cliff || period))}</dd>
+          <dd>{startTs ? fmtDate(startTs + (cliff || period)) : "—"}</dd>
           <dt>Per month</dt>
           <dd>{perMonth !== undefined && decimals !== undefined ? fmtAmount(perMonth, decimals) : "—"}</dd>
           <dt>Fee</dt>
