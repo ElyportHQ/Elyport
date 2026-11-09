@@ -7,6 +7,7 @@ import { contracts, elysium } from "@/lib/config";
 import { dropAbi } from "@/lib/abis";
 import { chunk, fmtAmount, parseRecipients } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
+import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import { FanOut } from "@/components/home/Scenes";
 
 const BATCH = 400; // below the contract's 500 cap, leaves gas headroom
@@ -19,6 +20,8 @@ export function DropConsole() {
   const [same, setSame] = useState("");
   const [useSame, setUseSame] = useState(false);
   const [done, setDone] = useState(0);
+  const [moment, setMoment] = useState<Moment | null>(null);
+  useCelebratePreview(setMoment, { kind: "drop", title: "Drop sent", detail: "Sent to 1,240 wallets in 3 batches." });
 
   const cid = elysium.id;
   const tokenAddr = isAddress(token) ? (token as Address) : undefined;
@@ -76,6 +79,11 @@ export function DropConsole() {
       setDone(i + 1);
     }
     setState({ status: "success", message: `Sent to ${parsed.valid.length} wallets.` });
+    setMoment({
+      kind: "drop",
+      title: "Drop sent",
+      detail: `Sent to ${parsed.valid.length.toLocaleString("en-US")} wallets in ${recips.length} ${recips.length === 1 ? "batch" : "batches"}.`,
+    });
   }
 
   const notEnough = mode === "token" && balance !== undefined && total > balance;
@@ -83,6 +91,7 @@ export function DropConsole() {
 
   return (
     <div className="app-grid">
+      <SuccessMoment moment={moment} onClose={() => setMoment(null)} />
       <div className="console">
         <span className="console-title">New drop</span>
         <div className="segmented" role="group" aria-label="What to send">

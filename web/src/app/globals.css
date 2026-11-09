@@ -263,6 +263,67 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .cmdk .foot { display: flex; gap: 16px; padding: 10px 18px; border-top: 1px solid #eef0f3; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+/* ---------------------------------------------------------------- success moment */
+.moment-backdrop { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: rgba(236,239,245,.62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); animation: fadeIn .25s ease both; }
+.moment { position: relative; width: 100%; max-width: 420px; padding: 8px 26px 26px; border-radius: 30px; text-align: center;
+  background: rgba(255,255,255,.96); border: 1px solid #e3e7ec; box-shadow: 0 40px 100px rgba(40,48,70,.22);
+  animation: momentIn .55s cubic-bezier(.2,.9,.25,1.15) both; overflow: hidden; }
+.moment::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--holo); }
+.moment-stage { position: relative; height: 230px; margin: 0 -26px; }
+.moment-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.moment-title { margin: 0; font-size: 26px; font-weight: 500; letter-spacing: -.02em; animation: riseIn .5s .35s ease both; }
+.moment-detail { margin: 8px 0 0; color: var(--body); font-size: 16px; line-height: 1.5; animation: riseIn .5s .45s ease both; }
+.moment-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; animation: riseIn .5s .55s ease both; }
+@keyframes momentIn { from { opacity: 0; transform: translateY(24px) scale(.92); } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(10px); } }
+
+.m-rays, .m-ring, .m-spark, .m-check, .m-body, .m-pop, .m-rise { transform-box: fill-box; }
+.m-burst .m-rays { transform-origin: center; animation: raysIn 1s .1s cubic-bezier(.2,.8,.2,1) both, spin 24s linear 1.1s infinite; }
+.m-burst .m-ring { transform-origin: center; animation: ringPulse 1.1s .2s ease-out both; }
+@keyframes raysIn { from { opacity: 0; transform: scale(.4) rotate(-40deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes ringPulse { from { opacity: 1; transform: scale(.3); stroke-width: 10; } }
+
+.m-spark { transform-origin: center; opacity: 0; animation: spark 1.1s cubic-bezier(.15,.75,.3,1) both; }
+@keyframes spark {
+  0% { opacity: 0; transform: translate(0,0) scale(.4) rotate(0); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--r)); }
+}
+
+.m-check { transform-origin: center; animation: pop .45s cubic-bezier(.2,.9,.3,1.4) both; }
+.m-check-path { stroke-dasharray: 30; animation: dash .35s ease-out both; }
+@keyframes pop { from { opacity: 0; transform: scale(.2); } }
+@keyframes dash { from { stroke-dashoffset: 30; } }
+.m-draw { animation: drawIn 1.1s .15s cubic-bezier(.4,0,.2,1) both; }
+@keyframes drawIn { from { stroke-dashoffset: 100; } }
+
+.m-fall { opacity: 0; animation: fall .7s cubic-bezier(.5,0,.8,.6) both; }
+@keyframes fall { 0% { opacity: 0; transform: translateY(-20px); } 20% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; transform: translateY(78px) scale(.6); } }
+.m-fill { animation: fillUp 1s .35s cubic-bezier(.3,.7,.3,1) both; }
+@keyframes fillUp { from { transform: translateY(60px); } }
+.m-wave { animation: wave 1.4s linear infinite; }
+@keyframes wave { to { transform: translateX(32px); } }
+
+.m-shackle { animation: shackle .6s .35s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes shackle { from { transform: translateY(-16px); } }
+.m-body { transform-origin: center; animation: clink .35s .82s ease both; }
+@keyframes clink { 40% { transform: scale(1.06); } }
+
+.m-line { animation: lineIn .5s ease-out both; }
+@keyframes lineIn { from { stroke-dashoffset: 1; } }
+.m-fly { opacity: 0; animation: fly .6s cubic-bezier(.3,.6,.3,1) both; }
+@keyframes fly { 0% { opacity: 1; transform: translate(0,0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
+.m-pop { transform-origin: center; animation: pop .4s cubic-bezier(.2,.9,.3,1.5) both; }
+
+.m-rise { transform-origin: bottom; animation: rise .55s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes rise { from { transform: scaleY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .m-spark, .m-fall, .m-fly { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { erc20Abi, isAddress, parseEventLogs, parseUnits, type Address } from "viem";
-import { contracts, elysium } from "@/lib/config";
+import { contracts, elysium, explorerTx } from "@/lib/config";
 import { vestingAbi } from "@/lib/abis";
 import { fmtAmount, fmtDate, parseRecipients, short } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
+import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import { VestBars } from "@/components/home/Scenes";
 
 const cid = elysium.id;
@@ -44,6 +45,8 @@ function CreateSchedule() {
   const [monthly, setMonthly] = useState(true);
   const [revocable, setRevocable] = useState(false);
   const [firstId, setFirstId] = useState<bigint | undefined>();
+  const [moment, setMoment] = useState<Moment | null>(null);
+  useCelebratePreview(setMoment, { kind: "vest", title: "Vesting created", detail: "3 schedules are live. Tokens release on time, claim by claim." });
 
   const tokenAddr = isAddress(token) ? (token as Address) : undefined;
   const meta = useReadContracts({
@@ -102,11 +105,21 @@ function CreateSchedule() {
     );
     if (!receipt) return;
     const ev = parseEventLogs({ abi: vestingAbi, logs: receipt.logs, eventName: "ScheduleCreated" });
-    setFirstId(ev[0]?.args.id);
+    const first = ev[0]?.args.id;
+    setFirstId(first);
+    setMoment({
+      kind: "vest",
+      title: "Vesting created",
+      detail: `${ev.length || recipients.length} ${(ev.length || recipients.length) === 1 ? "schedule is" : "schedules are"} live. Tokens release on time, claim by claim.`,
+      href: first !== undefined ? `/vest/${first}` : undefined,
+      hrefLabel: "Open schedule",
+      externalHref: explorerTx(receipt.transactionHash),
+    });
   }
 
   return (
     <div className="app-grid">
+      <SuccessMoment moment={moment} onClose={() => setMoment(null)} />
       <div className="console">
         <label className="field">
           Token address

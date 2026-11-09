@@ -9,6 +9,7 @@ import { contracts, elysium, REFUEL_FEE_BPS, REFUEL_MAX_USD, REFUEL_PRESETS_USD,
 import { depositAbi, vaultAbi } from "@/lib/abis";
 import { depositKey, fmtAmount, short } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
+import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import type { UsdPrices } from "@/lib/prices";
 
 type Pay = "usdc" | "native";
@@ -40,6 +41,8 @@ export function RefuelConsole() {
   const [recipient, setRecipient] = useState("");
   const [key, setKey] = useState<`0x${string}` | undefined>();
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [moment, setMoment] = useState<Moment | null>(null);
+  useCelebratePreview(setMoment, { kind: "refuel", title: "Refueled", detail: "≈ 0.1200 HYPE landed in your wallet on Elysium. You are ready to go." });
 
   useEffect(() => setHistory(loadHistory()), []);
   useEffect(() => {
@@ -128,8 +131,22 @@ export function RefuelConsole() {
 
   const step = delivered.data ? 3 : key ? 2 : state.status === "pending" ? 1 : 0;
 
+  const [celebrated, setCelebrated] = useState<string | undefined>();
+  useEffect(() => {
+    if (!key || !delivered.data || celebrated === key) return;
+    setCelebrated(key);
+    setMoment({
+      kind: "refuel",
+      title: "Refueled",
+      detail: `${receiveHype ? `≈ ${receiveHype.toFixed(4)} HYPE` : "Your HYPE"} landed on Elysium. You are ready to go.`,
+      href: "/drop",
+      hrefLabel: "Explore the toolkit",
+    });
+  }, [key, delivered.data, celebrated, receiveHype]);
+
   return (
     <div className="app-grid">
+      <SuccessMoment moment={moment} onClose={() => setMoment(null)} />
       <div className="console">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
           <span className="console-title">New refuel</span>

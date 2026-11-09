@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { erc20Abi, formatUnits, isAddress, parseEventLogs, parseUnits, type Address } from "viem";
-import { contracts, elysium } from "@/lib/config";
+import { contracts, elysium, explorerTx } from "@/lib/config";
 import { lockerAbi } from "@/lib/abis";
 import { countdown, fmtAmount, fmtDate, short } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
+import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import { useMounted } from "@/lib/useMounted";
 import { LockRing } from "@/components/home/Scenes";
 
@@ -48,6 +49,8 @@ function CreateLock() {
   const [owner, setOwner] = useState("");
   const [note, setNote] = useState("");
   const [createdId, setCreatedId] = useState<bigint | undefined>();
+  const [moment, setMoment] = useState<Moment | null>(null);
+  useCelebratePreview(setMoment, { kind: "lock", title: "Locked", detail: "Lock #12 is live. Anyone can verify it on its public page.", href: "/locks", hrefLabel: "Explore locks" });
 
   useEffect(() => {
     if (address && !owner) setOwner(address);
@@ -111,12 +114,21 @@ function CreateLock() {
     if (!receipt) return;
     const id = parseEventLogs({ abi: lockerAbi, logs: receipt.logs, eventName: "LockCreated" })[0]?.args.id;
     setCreatedId(id);
+    setMoment({
+      kind: "lock",
+      title: "Locked",
+      detail: id !== undefined ? `Lock #${id} is live until ${fmtDate(unlockAt)}. Anyone can verify it.` : "Your lock is live. Anyone can verify it.",
+      href: id !== undefined ? `/lock/${id}` : "/locks",
+      hrefLabel: id !== undefined ? "Open lock page" : "Explore locks",
+      externalHref: explorerTx(receipt.transactionHash),
+    });
   }
 
   const pct = amountWei && supply ? Number((amountWei * 10_000n) / supply) / 100 : undefined;
 
   return (
     <div className="app-grid">
+      <SuccessMoment moment={moment} onClose={() => setMoment(null)} />
       <div className="console">
         <div className="segmented" role="group" aria-label="Lock type">
           <button type="button" aria-pressed={isLP} onClick={() => setIsLP(true)}>
