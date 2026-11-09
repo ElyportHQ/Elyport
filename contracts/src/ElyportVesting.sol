@@ -29,7 +29,8 @@ contract ElyportVesting is ElyportFees, ReentrancyGuard {
         bool revoked;
     }
 
-    uint256 public constant MAX_BATCH = 200;
+    /// @dev Each schedule costs ~230k gas; 100 keeps a full batch well under the 32M per-tx limit of Orbit chains.
+    uint256 public constant MAX_BATCH = 100;
 
     /// @notice Flat fee per create call (one or many beneficiaries), in native wei.
     uint256 public vestingFee;
@@ -95,6 +96,8 @@ contract ElyportVesting is ElyportFees, ReentrancyGuard {
         if (n > MAX_BATCH) revert BatchTooLarge();
         if (token == address(0)) revert ZeroAddress();
         if (duration == 0 || cliff > duration || period == 0 || period > duration) revert InvalidSchedule();
+        // Keeps start + duration inside uint64 so the schedule can always be read, claimed and revoked.
+        if (uint256(start) + duration > type(uint64).max || start > block.timestamp + 3650 days) revert InvalidSchedule();
 
         uint256 sum;
         for (uint256 i; i < n; ++i) {

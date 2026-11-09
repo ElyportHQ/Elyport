@@ -131,4 +131,42 @@ contract ElyportVestingTest is Test {
         vm.expectRevert(ElyportVesting.InvalidSchedule.selector);
         vesting.createSchedules{value: FEE}(address(token), b, a, uint64(block.timestamp), 20, 10, 1, false);
     }
+
+    function test_RevertWhen_StartOverflows() public {
+        address[] memory b = new address[](1);
+        b[0] = alice;
+        uint256[] memory a = new uint256[](1);
+        a[0] = 1 ether;
+        vm.prank(creator);
+        vm.expectRevert(ElyportVesting.InvalidSchedule.selector);
+        vesting.createSchedules{value: FEE}(address(token), b, a, type(uint64).max - 5, 0, 10, 1, true);
+    }
+
+    function test_RevertWhen_BatchOverLimit() public {
+        uint256 n = vesting.MAX_BATCH() + 1;
+        address[] memory b = new address[](n);
+        uint256[] memory a = new uint256[](n);
+        for (uint256 i; i < n; ++i) {
+            b[i] = address(uint160(i + 1));
+            a[i] = 1 ether;
+        }
+        vm.prank(creator);
+        vm.expectRevert(ElyportVesting.BatchTooLarge.selector);
+        vesting.createSchedules{value: FEE}(address(token), b, a, uint64(block.timestamp), 0, 10, 1, false);
+    }
+
+    function test_FullBatchFitsOrbitGasLimit() public {
+        uint256 n = vesting.MAX_BATCH();
+        address[] memory b = new address[](n);
+        uint256[] memory a = new uint256[](n);
+        for (uint256 i; i < n; ++i) {
+            b[i] = address(uint160(i + 1));
+            a[i] = 1 ether;
+        }
+        vm.prank(creator);
+        uint256 g = gasleft();
+        vesting.createSchedules{value: FEE}(address(token), b, a, uint64(block.timestamp), 0, 10, 1, false);
+        assertLt(g - gasleft(), 30_000_000);
+    }
 }
+

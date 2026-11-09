@@ -35,3 +35,18 @@ contract RejectEther {
         revert("no");
     }
 }
+
+/// @dev A V2-style LP token: an ERC-20 that reports its two underlying tokens.
+contract MockPair is ERC20 {
+    address public token0;
+    address public token1;
+
+    constructor(address t0, address t1) ERC20("LP", "LP") {
+        token0 = t0;
+        token1 = t1;
+    }
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
+    }
+}

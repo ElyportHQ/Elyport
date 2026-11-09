@@ -85,7 +85,7 @@ function CreateSchedule() {
 
   const { writeContractAsync } = useWriteContract();
   const { state, run } = useChainTx(cid);
-  const ready = startTs > 0 && !!contracts.vesting && !!tokenAddr && recipients.length > 0 && !!amounts && total > 0n && cliff <= duration && fee.data !== undefined && recipients.length <= 200;
+  const ready = startTs > 0 && !!contracts.vesting && !!tokenAddr && recipients.length > 0 && !!amounts && total > 0n && cliff <= duration && fee.data !== undefined && recipients.length <= 100;
 
   async function create() {
     if (!ready || !contracts.vesting || !tokenAddr || !amounts) return;
@@ -196,7 +196,10 @@ function CreateSchedule() {
 
         <dl className="summary">
           <dt>Recipients</dt>
-          <dd>{recipients.length}</dd>
+          <dd style={recipients.length > 100 ? { color: "#B4233C" } : undefined}>
+            {recipients.length}
+            {recipients.length > 100 ? " · max 100 per batch" : ""}
+          </dd>
           <dt>Total</dt>
           <dd>
             {decimals !== undefined ? fmtAmount(total, decimals) : "—"} {symbol ?? ""}

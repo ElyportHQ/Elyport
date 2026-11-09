@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {Test} from "forge-std/Test.sol";
 import {ElyportLocker} from "../src/ElyportLocker.sol";
 import {ElyportFees} from "../src/ElyportFees.sol";
-import {MockToken, TaxToken} from "./Mocks.sol";
+import {MockToken, TaxToken, MockPair} from "./Mocks.sol";
 
 contract ElyportLockerTest is Test {
     ElyportLocker locker;
@@ -26,7 +26,7 @@ contract ElyportLockerTest is Test {
 
     function _lock(uint64 unlockAt) internal returns (uint256) {
         vm.prank(alice);
-        return locker.createLock{value: FEE}(address(token), 100 ether, unlockAt, alice, true, "launch");
+        return locker.createLock{value: FEE}(address(token), 100 ether, unlockAt, alice, false, "launch");
     }
 
     function test_CreateLock() public {
@@ -36,7 +36,7 @@ contract ElyportLockerTest is Test {
         assertEq(l.amount, 100 ether);
         assertEq(l.owner, alice);
         assertEq(l.unlockAt, unlockAt);
-        assertTrue(l.isLP);
+        assertFalse(l.isLP);
         assertEq(token.balanceOf(address(locker)), 100 ether);
         assertEq(treasury.balance, FEE);
         assertEq(locker.lockIdsByToken(address(token)).length, 1);
@@ -134,5 +134,41 @@ contract ElyportLockerTest is Test {
         vm.prank(alice);
         vm.expectRevert();
         locker.setLockFee(0);
+    }
+
+    function test_LPLockIndexedUnderBothTokens() public {
+        MockToken weth = new MockToken();
+        MockPair pair = new MockPair(address(token), address(weth));
+        pair.mint(alice, 50 ether);
+        vm.startPrank(alice);
+        pair.approve(address(locker), type(uint256).max);
+        uint256 id = locker.createLock{value: FEE}(address(pair), 50 ether, uint64(block.timestamp + 1 days), alice, true, "");
+        vm.stopPrank();
+
+        assertTrue(locker.getLock(id).isLP);
+        assertEq(locker.lockIdsByToken(address(pair))[0], id);
+        assertEq(locker.lockIdsByToken(address(token))[0], id);
+        assertEq(locker.lockIdsByToken(address(weth))[0], id);
+    }
+
+    function test_RevertWhen_FakeLP() public {
+        vm.prank(alice);
+        vm.expectRevert(ElyportLocker.NotLPToken.selector);
+        locker.createLock{value: FEE}(address(token), 1 ether, uint64(block.timestamp + 1 days), alice, true, "");
+    }
+
+    function test_RevertWhen_NoteTooLong() public {
+        bytes memory longNote = new bytes(281);
+        vm.prank(alice);
+        vm.expectRevert(ElyportLocker.NoteTooLong.selector);
+        locker.createLock{value: FEE}(address(token), 1 ether, uint64(block.timestamp + 1 days), alice, false, string(longNote));
+    }
+
+    function test_ExtendMustBeInFuture() public {
+        uint256 id = _lock(uint64(block.timestamp + 1 days));
+        vm.warp(block.timestamp + 10 days);
+        vm.prank(alice);
+        vm.expectRevert(ElyportLocker.InvalidUnlockTime.selector);
+        locker.extendLock(id, uint64(block.timestamp - 1));
     }
 }

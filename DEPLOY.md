@@ -1,6 +1,9 @@
 # Deploying Elyport
 
-The last step before launch. Do it on **Elysium Testnet first**, test every tool end to end, then repeat on mainnet.
+The last step before launch, straight to **Elysium mainnet** (chain `99901`).
+
+Because there is no testnet run, launch **guarded**: deploy with low refuel caps and a small vault stock, run the
+smoke test in step 5 with tiny amounts, and only then raise the caps and top up the vault.
 
 > Never paste a private key into chat, an issue, or a commit. Keys go only in your own terminal and in Vercel's encrypted env vars.
 
@@ -22,16 +25,17 @@ forge install foundry-rs/forge-std@v1.9.4 --no-git
 forge install OpenZeppelin/openzeppelin-contracts@v5.1.0 --no-git
 forge test
 
-export ELYSIUM_RPC_URL=https://testnet-rpc.elysium.kinetiq.xyz   # mainnet: the published RPC
+export ELYSIUM_RPC_URL=https://rpc.elysium.kinetiq.xyz
 export OWNER=0xYourDeployer            # same as the deployer, so the script can set the relayer
 export FEE_RECIPIENT=0xYourFeeWallet
 export RELAYER=0xYourRelayer
 export LOCK_FEE_WEI=250000000000000000      # ≈ $10
 export VESTING_FEE_WEI=250000000000000000   # ≈ $10 per create
 export DROP_FEE_WEI=75000000000000000       # ≈ $3 per batch
+# Guarded launch caps; raise later with setCaps(...)
 export VAULT_MAX_PER_TX_WEI=250000000000000000          # ≈ $10
 export VAULT_MAX_PER_WALLET_DAY_WEI=500000000000000000  # ≈ $20
-export VAULT_MAX_PER_DAY_WEI=25000000000000000000       # ≈ $1,000
+export VAULT_MAX_PER_DAY_WEI=2500000000000000000        # ≈ $100 for the first day
 
 forge script script/Deploy.s.sol:DeployElysium --rpc-url $ELYSIUM_RPC_URL --broadcast --interactives 1
 ```
@@ -39,7 +43,8 @@ forge script script/Deploy.s.sol:DeployElysium --rpc-url $ELYSIUM_RPC_URL --broa
 `--interactives 1` asks for the key in the terminal so it never lands in your shell history.
 The script prints the four `NEXT_PUBLIC_*_ADDRESS=` lines; keep them for step 3.
 
-Then fund the vault with the refuel stock (≈ $1,000 of HYPE) by sending HYPE straight to the vault address.
+Then fund the vault by sending HYPE straight to the vault address: start with ≈ $100, and top up to ≈ $1,000
+after the smoke test. Raise the daily cap with `setCaps` at the same time.
 
 ## 2. Source-chain deposit contracts
 
@@ -75,9 +80,8 @@ Project → Settings → Environment Variables (Production):
 | `RPC_URL_<chainId>` | a private RPC per source chain (Alchemy, QuickNode…) |
 | `ELYSIUM_RPC_URL_SERVER` | a private Elysium RPC for the relayer |
 
-For **mainnet**, also set `NEXT_PUBLIC_ELYSIUM_CHAIN_ID`, `NEXT_PUBLIC_ELYSIUM_NAME`, `NEXT_PUBLIC_ELYSIUM_RPC_URL`,
-`NEXT_PUBLIC_ELYSIUM_EXPLORER_URL` (and the `_TX_PATH` / `_ADDRESS_PATH` if the explorer is not Blockscout) and
-`NEXT_PUBLIC_ELYSIUM_MULTICALL3` from Kinetiq's published network details. When the domain is live, set
+The app already defaults to Elysium mainnet (chain `99901`, `https://rpc.elysium.kinetiq.xyz`,
+explorer `https://elysium.kinetiq.xyz/explorer`), so no network variables are needed. When the domain is live, set
 `NEXT_PUBLIC_SITE_URL=https://elyport.com` and add it to the Reown allowlist.
 
 Redeploy after saving.

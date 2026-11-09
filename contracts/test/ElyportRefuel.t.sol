@@ -105,4 +105,27 @@ contract ElyportRefuelTest is Test {
         vm.expectRevert(abi.encodeWithSelector(ElyportRefuelDeposit.OutOfRange.selector, 0.0003 ether, 0.004 ether));
         deposit.depositNative{value: 0.01 ether}(user);
     }
+
+    function test_SweepCannotTouchPending() public {
+        vm.startPrank(user);
+        usdc.approve(address(deposit), 10e6);
+        uint256 a = deposit.depositToken(address(usdc), 5e6, user);
+        deposit.depositToken(address(usdc), 4e6, user);
+        vm.stopPrank();
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(ElyportRefuelDeposit.ExceedsFreeBalance.selector, 0));
+        deposit.sweep(address(usdc), owner, 1);
+
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = a;
+        vm.prank(relayer);
+        deposit.markFulfilled(ids, new bytes32[](1));
+
+        vm.prank(owner);
+        deposit.sweep(address(usdc), owner, 5e6);
+        assertEq(usdc.balanceOf(owner), 5e6);
+        assertEq(deposit.reserved(address(usdc)), 4e6);
+    }
 }
+

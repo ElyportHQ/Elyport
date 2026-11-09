@@ -40,6 +40,8 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
     /// @dev address(0) holds the limits for the chain's native token.
     mapping(address token => TokenLimits) public limits;
     mapping(address => bool) public isRelayer;
+    /// @notice Funds owed to pending deposits, per token. Sweeps can never touch them.
+    mapping(address token => uint256) public reserved;
     Deposit[] private _deposits;
 
     error NotRelayer();
@@ -49,6 +51,7 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
     error NotPending();
     error TransferFailed();
     error UnknownDeposit();
+    error ExceedsFreeBalance(uint256 free);
 
     event Deposited(
         uint256 indexed id, address indexed sender, address indexed recipient, address token, uint256 amount
@@ -86,6 +89,7 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
             Deposit storage d = _get(ids[i]);
             if (d.status != Status.Pending) revert NotPending();
             d.status = Status.Fulfilled;
+            reserved[d.token] -= d.amount;
             emit Fulfilled(ids[i], i < elysiumTxs.length ? elysiumTxs[i] : bytes32(0));
         }
     }
@@ -96,6 +100,7 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
         Deposit storage d = _get(id);
         if (d.status != Status.Pending) revert NotPending();
         d.status = Status.Refunded;
+        reserved[d.token] -= d.amount;
         _send(d.token, d.sender, d.amount);
         emit Refunded(id, d.sender, d.amount);
     }
@@ -124,8 +129,12 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
     }
 
     /// @notice Moves collected funds to the treasury (used to restock HYPE on Elysium).
+    ///         Only fulfilled funds can leave: pending deposits stay fully refundable.
     function sweep(address token, address to, uint256 amount) external onlyOwner nonReentrant {
         if (to == address(0)) revert ZeroAddress();
+        uint256 bal = token == address(0) ? address(this).balance : IERC20(token).balanceOf(address(this));
+        uint256 free = bal > reserved[token] ? bal - reserved[token] : 0;
+        if (amount > free) revert ExceedsFreeBalance(free);
         _send(token, to, amount);
     }
 
@@ -146,6 +155,7 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
         if (amount < l.min || amount > l.max) revert OutOfRange(l.min, l.max);
         id = _deposits.length;
         _deposits.push(Deposit(msg.sender, recipient, token, amount, uint64(block.timestamp), Status.Pending));
+        reserved[token] += amount;
         emit Deposited(id, msg.sender, recipient, token, amount);
     }
 

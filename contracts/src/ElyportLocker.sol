@@ -7,9 +7,17 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ElyportFees} from "./ElyportFees.sol";
 
+/// @dev Minimal Uniswap-V2-style pair interface, used to verify LP locks.
+interface IPairTokens {
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+}
+
 /// @title ElyportLocker
 /// @notice Time-locks ERC-20 tokens and LP tokens. A lock can be extended or topped up,
-///         never shortened. Every lock is public and indexed by token and by owner.
+///         never shortened. Every lock is public and indexed by token and by owner. LP locks
+///         are verified as V2-style pairs and also indexed under both underlying tokens, so a
+///         token's page shows the liquidity locked for it.
 contract ElyportLocker is ElyportFees, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -27,6 +35,8 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
     /// @notice Flat fee per new lock, in native wei.
     uint256 public lockFee;
 
+    uint256 public constant MAX_NOTE_LENGTH = 280;
+
     Lock[] private _locks;
     mapping(address token => uint256[]) private _locksByToken;
     mapping(address owner => EnumerableSet.UintSet) private _locksByOwner;
@@ -37,6 +47,8 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
     error StillLocked(uint64 unlockAt);
     error AlreadyWithdrawn();
     error UnknownLock();
+    error NotLPToken();
+    error NoteTooLong();
 
     event LockFeeUpdated(uint256 fee);
     event LockCreated(
@@ -71,6 +83,8 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
         if (token == address(0) || lockOwner == address(0)) revert ZeroAddress();
         if (amount == 0) revert InvalidAmount();
         if (unlockAt <= block.timestamp) revert InvalidUnlockTime();
+        if (bytes(note).length > MAX_NOTE_LENGTH) revert NoteTooLong();
+        (address t0, address t1) = isLP ? _pairTokens(token) : (address(0), address(0));
 
         uint256 received = _pull(token, amount);
         if (received == 0 || received > type(uint128).max) revert InvalidAmount();
@@ -88,6 +102,10 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
             })
         );
         _locksByToken[token].push(id);
+        if (isLP) {
+            if (t0 != token) _locksByToken[t0].push(id);
+            if (t1 != token && t1 != t0) _locksByToken[t1].push(id);
+        }
         _locksByOwner[lockOwner].add(id);
 
         _takeFee(msg.value);
@@ -97,7 +115,7 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
     /// @notice Pushes the unlock time later. It can never move earlier.
     function extendLock(uint256 id, uint64 newUnlockAt) external {
         Lock storage l = _ownedLock(id);
-        if (newUnlockAt <= l.unlockAt) revert InvalidUnlockTime();
+        if (newUnlockAt <= l.unlockAt || newUnlockAt <= block.timestamp) revert InvalidUnlockTime();
         l.unlockAt = newUnlockAt;
         emit LockExtended(id, newUnlockAt);
     }
@@ -145,6 +163,7 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
         return _locks[id];
     }
 
+    /// @notice Locks of `token` itself, plus LP locks of pairs that contain `token`.
     function lockIdsByToken(address token) external view returns (uint256[] memory) {
         return _locksByToken[token];
     }
@@ -174,6 +193,21 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
         l = _locks[id];
         if (l.owner != msg.sender) revert NotLockOwner();
         if (l.withdrawn) revert AlreadyWithdrawn();
+    }
+
+    /// @dev Reads token0/token1 from a V2-style pair; reverts with NotLPToken if it is not one.
+    function _pairTokens(address pair) private view returns (address t0, address t1) {
+        t0 = _readAddress(pair, IPairTokens.token0.selector);
+        t1 = _readAddress(pair, IPairTokens.token1.selector);
+        if (t0 == address(0) || t1 == address(0) || t0 == t1) revert NotLPToken();
+    }
+
+    function _readAddress(address target, bytes4 selector) private view returns (address a) {
+        (bool ok, bytes memory data) = target.staticcall{gas: 50_000}(abi.encodeWithSelector(selector));
+        if (!ok || data.length < 32) revert NotLPToken();
+        uint256 word = abi.decode(data, (uint256));
+        if (word > type(uint160).max) revert NotLPToken();
+        a = address(uint160(word));
     }
 
     function _pull(address token, uint256 amount) private returns (uint256 received) {

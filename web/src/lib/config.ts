@@ -6,23 +6,23 @@ const env = (v: string | undefined, fallback = "") => (v && v.trim() !== "" ? v.
 const asAddress = (v: string | undefined): Address | undefined =>
   v && /^0x[0-9a-fA-F]{40}$/.test(v.trim()) ? (v.trim() as Address) : undefined;
 
-const multicall3 = asAddress(process.env.NEXT_PUBLIC_ELYSIUM_MULTICALL3);
+const multicall3 = asAddress(process.env.NEXT_PUBLIC_ELYSIUM_MULTICALL3) ?? "0xcA11bde05977b3631167028862bE2a173976CA11";
 
-/** Elysium, defined from env so mainnet values can be swapped in without code changes. */
+/** Elysium mainnet (chain 99901) by default; every value can be overridden from env. */
 export const elysium = defineChain({
-  id: Number(env(process.env.NEXT_PUBLIC_ELYSIUM_CHAIN_ID, "99801")),
-  name: env(process.env.NEXT_PUBLIC_ELYSIUM_NAME, "Elysium Testnet"),
+  id: Number(env(process.env.NEXT_PUBLIC_ELYSIUM_CHAIN_ID, "99901")),
+  name: env(process.env.NEXT_PUBLIC_ELYSIUM_NAME, "Elysium"),
   nativeCurrency: { name: "HYPE", symbol: "HYPE", decimals: 18 },
   rpcUrls: {
-    default: { http: [env(process.env.NEXT_PUBLIC_ELYSIUM_RPC_URL, "https://testnet-rpc.elysium.kinetiq.xyz")] },
+    default: { http: [env(process.env.NEXT_PUBLIC_ELYSIUM_RPC_URL, "https://rpc.elysium.kinetiq.xyz")] },
   },
   blockExplorers: {
     default: {
       name: "Elysium Explorer",
-      url: env(process.env.NEXT_PUBLIC_ELYSIUM_EXPLORER_URL, "https://explorer-elysium-testnet.t.conduit.xyz"),
+      url: env(process.env.NEXT_PUBLIC_ELYSIUM_EXPLORER_URL, "https://elysium.kinetiq.xyz/explorer"),
     },
   },
-  contracts: multicall3 ? { multicall3: { address: multicall3 } } : undefined,
+  contracts: { multicall3: { address: multicall3 } },
 });
 
 export const hyperEvm = defineChain({
