@@ -266,7 +266,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 /* ---------------------------------------------------------------- success moment */
 .moment-backdrop { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 20px;
   background: rgba(236,239,245,.62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); animation: fadeIn .25s ease both; }
-.moment { position: relative; width: 100%; max-width: 420px; padding: 8px 26px 26px; border-radius: 30px; text-align: center;
+.moment { outline: none; position: relative; width: 100%; max-width: 420px; padding: 8px 26px 26px; border-radius: 30px; text-align: center;
   background: rgba(255,255,255,.96); border: 1px solid #e3e7ec; box-shadow: 0 40px 100px rgba(40,48,70,.22);
   animation: momentIn .55s cubic-bezier(.2,.9,.25,1.15) both; overflow: hidden; }
 .moment::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--holo); }

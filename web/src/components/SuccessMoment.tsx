@@ -21,14 +21,14 @@ export type Moment = {
 /** Full-screen success moment with an animated scene for each tool. */
 export function SuccessMoment({ moment, onClose }: { moment: Moment | null; onClose: () => void }) {
   const [mounted, setMounted] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!moment) return;
-    closeRef.current?.focus();
+    boxRef.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCloseRef.current();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -38,7 +38,7 @@ export function SuccessMoment({ moment, onClose }: { moment: Moment | null; onCl
 
   return createPortal(
     <div className="moment-backdrop" role="dialog" aria-modal="true" aria-label={moment.title} onClick={onClose}>
-      <div className="moment" onClick={(e) => e.stopPropagation()}>
+      <div ref={boxRef} tabIndex={-1} className="moment" onClick={(e) => e.stopPropagation()}>
         <div className="moment-stage" aria-hidden>
           <Burst />
           {moment.kind === "refuel" && <RefuelScene />}
@@ -60,7 +60,7 @@ export function SuccessMoment({ moment, onClose }: { moment: Moment | null; onCl
               {moment.externalLabel ?? "View transaction"} ↗
             </a>
           )}
-          <button ref={closeRef} type="button" className={moment.href ? "btn btn-ghost btn-block" : "btn btn-dark btn-block"} onClick={onClose}>
+          <button type="button" className={moment.href ? "btn btn-ghost btn-block" : "btn btn-dark btn-block"} onClick={onClose}>
             Done
           </button>
         </div>
