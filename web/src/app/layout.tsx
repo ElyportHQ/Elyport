@@ -15,7 +15,6 @@ export const metadata: Metadata = {
   title: { default: "Elyport — The port into Elysium", template: "%s · Elyport" },
   description:
     "Refuel gas from any chain, Gas Drop to thousands, and lock or vest tokens on Elysium, the Hyperliquid L2. Independent tool, not affiliated with Kinetiq.",
-  icons: { icon: "/logo.png", apple: "/logo.png" },
   openGraph: {
     title: "Elyport — The port into Elysium",
     description: "Refuel, Gas Drop, Locker and Vesting on Elysium.",

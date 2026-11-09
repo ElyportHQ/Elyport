@@ -131,6 +131,16 @@ export const vestingAbi = [
   },
   {
     type: "function",
+    name: "vestedAmount",
+    stateMutability: "view",
+    inputs: [
+      { name: "id", type: "uint256" },
+      { name: "timestamp", type: "uint64" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
     name: "scheduleIdsByToken",
     stateMutability: "view",
     inputs: [{ name: "token", type: "address" }],

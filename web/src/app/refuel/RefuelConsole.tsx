@@ -124,6 +124,12 @@ export function RefuelConsole() {
     if (id === undefined) return;
     const k = depositKey(source.id, deposit, id);
     setKey(k);
+    // Ask the relayer to deliver now; cron picks it up anyway if this call fails.
+    fetch("/api/refuel/process", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chainId: source.id, id: id.toString() }),
+    }).catch(() => undefined);
     const next = [{ chain: source.name, usd: amountUsd, tx: receipt.transactionHash, key: k, ts: Date.now() }, ...history];
     setHistory(next);
     saveHistory(next);

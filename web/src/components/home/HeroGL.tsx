@@ -106,6 +106,11 @@ void main() {
 
   vec3 shadowCol = vec3(0.30, 0.34, 0.45);
   float alpha = max(cover, shade);
+  // fade the pillars out into the clouds at the bottom of the hero
+  float fy = px.y / uRes.y;
+  float fade = 1.0 - smoothstep(0.80, 0.97, fy);
+  cover *= fade;
+  alpha *= fade;
   vec3 outc = cover > 0.0 ? mix(shadowCol, col, cover / max(alpha, 0.0001)) : shadowCol;
   gl_FragColor = vec4(outc * alpha, alpha);
 }

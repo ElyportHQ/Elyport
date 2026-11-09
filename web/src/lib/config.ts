@@ -19,7 +19,7 @@ export const elysium = defineChain({
   blockExplorers: {
     default: {
       name: "Elysium Explorer",
-      url: env(process.env.NEXT_PUBLIC_ELYSIUM_EXPLORER_URL, "https://elysium.kinetiq.xyz/testnet-explorer"),
+      url: env(process.env.NEXT_PUBLIC_ELYSIUM_EXPLORER_URL, "https://explorer-elysium-testnet.t.conduit.xyz"),
     },
   },
   contracts: multicall3 ? { multicall3: { address: multicall3 } } : undefined,
@@ -44,7 +44,9 @@ export const deployBlock = BigInt(env(process.env.NEXT_PUBLIC_DEPLOY_BLOCK, "0")
 
 // Reown project IDs are public (they ship to every browser); the env var can override this one.
 export const reownProjectId = env(process.env.NEXT_PUBLIC_REOWN_PROJECT_ID, "ad50cb8494cbdb5f848d883ed7b470b5");
-export const siteUrl = env(process.env.NEXT_PUBLIC_SITE_URL, "https://elyport.com");
+const vercelProd = env(process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL);
+/** Public site URL: the env override, else the Vercel production domain, else elyport.com. */
+export const siteUrl = env(process.env.NEXT_PUBLIC_SITE_URL, vercelProd ? `https://${vercelProd}` : "https://elyport.com").replace(/\/$/, "");
 
 export type SourceChain = {
   id: number;
@@ -101,5 +103,7 @@ export const REFUEL_FEE_BPS = 50; // 0.5%
 export const REFUEL_PRESETS_USD = [1, 3, 5, 10];
 export const REFUEL_MAX_USD = 10;
 
-export const explorerTx = (hash: string) => `${elysium.blockExplorers.default.url}/tx/${hash}`;
-export const explorerAddress = (a: string) => `${elysium.blockExplorers.default.url}/address/${a}`;
+const txPath = env(process.env.NEXT_PUBLIC_ELYSIUM_EXPLORER_TX_PATH, "/tx/");
+const addressPath = env(process.env.NEXT_PUBLIC_ELYSIUM_EXPLORER_ADDRESS_PATH, "/address/");
+export const explorerTx = (hash: string) => `${elysium.blockExplorers.default.url}${txPath}${hash}`;
+export const explorerAddress = (a: string) => `${elysium.blockExplorers.default.url}${addressPath}${a}`;

@@ -59,6 +59,7 @@ sequenceDiagram
     Note over R,D: If a cap or the stock blocks it, the deposit is refunded
 ```
 
+The app asks the relayer to deliver as soon as the payment confirms, and scheduled sweeps catch anything missed.
 Every deposit has a unique key, so the vault can never pay the same deposit twice.
 Instant refuels are capped per transaction, per wallet per day and per day. Larger amounts go through a bridge route.
 
@@ -109,8 +110,10 @@ npm install
 npm run dev
 ```
 
+Full launch checklist: **[DEPLOY.md](DEPLOY.md)**. Security reports: **[SECURITY.md](SECURITY.md)**.
+
 <details>
-<summary><b>Deploying</b></summary>
+<summary><b>Deploying (short version)</b></summary>
 
 <br>
 
