@@ -1,4 +1,6 @@
-/* Animated SVG scenes for the home page. Pure SVG + SMIL, no JS, respects reduced motion via CSS. */
+/* Animated SVG scenes for the home page. Pure SVG + SMIL, respects reduced motion via CSS.
+   The hero adds a WebGL chrome gate between its back and front layers. */
+import { HeroGL } from "./HeroGL";
 
 const arches = [
   { r: 270, w: 34 },
@@ -22,6 +24,7 @@ const particles = [
 
 export function HeroScene() {
   return (
+    <>
     <svg className="hero-scene" viewBox="0 0 1440 960" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
         <radialGradient id="hSun" cx="0.5" cy="0.5" r="0.5">
@@ -89,7 +92,7 @@ export function HeroScene() {
         <path d="M666 900V640A54 54 0 0 1 774 640V900Z" fill="url(#hDoor)">
           <animate attributeName="opacity" values="0.85;1;0.85" dur="4s" repeatCount="indefinite" />
         </path>
-        <g fill="none">
+        <g fill="none" className="hero-arch-svg">
           {arches.map((a) => (
             <path key={`c${a.r}`} d={archPath(720, 640, a.r, 900)} stroke="url(#hChrome)" strokeWidth={a.w} />
           ))}
@@ -106,9 +109,13 @@ export function HeroScene() {
         </g>
       </g>
 
+    </svg>
+    <HeroGL />
+    <svg className="hero-scene hero-front" viewBox="0 0 1440 960" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <Clouds />
       <rect x="0" y="820" width="1440" height="140" fill="url(#hFade)" />
     </svg>
+    </>
   );
 }
 
