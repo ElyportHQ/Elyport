@@ -37,6 +37,8 @@ jobs:
           node-version: 22
       - name: Install
         run: npm install --no-audit --no-fund
+      - name: Show wallet stack versions
+        run: npm ls wagmi @wagmi/core @wagmi/connectors viem @reown/appkit @reown/appkit-adapter-wagmi --all 2>/dev/null | head -60 || true
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Build
