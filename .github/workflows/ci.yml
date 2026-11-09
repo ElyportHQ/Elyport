@@ -27,6 +27,8 @@ jobs:
 
   web:
     name: Web (typecheck + build)
+    # Run after contracts; this account's runners start parallel jobs unreliably.
+    needs: contracts
     runs-on: ubuntu-latest
     defaults:
       run:
