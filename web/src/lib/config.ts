@@ -42,7 +42,8 @@ export const contracts = {
 
 export const deployBlock = BigInt(env(process.env.NEXT_PUBLIC_DEPLOY_BLOCK, "0"));
 
-export const reownProjectId = env(process.env.NEXT_PUBLIC_REOWN_PROJECT_ID);
+// Reown project IDs are public (they ship to every browser); the env var can override this one.
+export const reownProjectId = env(process.env.NEXT_PUBLIC_REOWN_PROJECT_ID, "ad50cb8494cbdb5f848d883ed7b470b5");
 export const siteUrl = env(process.env.NEXT_PUBLIC_SITE_URL, "https://elyport.com");
 
 export type SourceChain = {
