@@ -1,0 +1,104 @@
+import { defineChain, type Address } from "viem";
+import { arbitrum, base, bsc, mainnet } from "viem/chains";
+
+const env = (v: string | undefined, fallback = "") => (v && v.trim() !== "" ? v.trim() : fallback);
+
+const asAddress = (v: string | undefined): Address | undefined =>
+  v && /^0x[0-9a-fA-F]{40}$/.test(v.trim()) ? (v.trim() as Address) : undefined;
+
+const multicall3 = asAddress(process.env.NEXT_PUBLIC_ELYSIUM_MULTICALL3);
+
+/** Elysium, defined from env so mainnet values can be swapped in without code changes. */
+export const elysium = defineChain({
+  id: Number(env(process.env.NEXT_PUBLIC_ELYSIUM_CHAIN_ID, "99801")),
+  name: env(process.env.NEXT_PUBLIC_ELYSIUM_NAME, "Elysium Testnet"),
+  nativeCurrency: { name: "HYPE", symbol: "HYPE", decimals: 18 },
+  rpcUrls: {
+    default: { http: [env(process.env.NEXT_PUBLIC_ELYSIUM_RPC_URL, "https://testnet-rpc.elysium.kinetiq.xyz")] },
+  },
+  blockExplorers: {
+    default: {
+      name: "Elysium Explorer",
+      url: env(process.env.NEXT_PUBLIC_ELYSIUM_EXPLORER_URL, "https://elysium.kinetiq.xyz/testnet-explorer"),
+    },
+  },
+  contracts: multicall3 ? { multicall3: { address: multicall3 } } : undefined,
+});
+
+export const hyperEvm = defineChain({
+  id: 999,
+  name: "HyperEVM",
+  nativeCurrency: { name: "HYPE", symbol: "HYPE", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.hyperliquid.xyz/evm"] } },
+  blockExplorers: { default: { name: "HyperEVMScan", url: "https://hyperevmscan.io" } },
+});
+
+export const contracts = {
+  locker: asAddress(process.env.NEXT_PUBLIC_LOCKER_ADDRESS),
+  vesting: asAddress(process.env.NEXT_PUBLIC_VESTING_ADDRESS),
+  drop: asAddress(process.env.NEXT_PUBLIC_DROP_ADDRESS),
+  refuelVault: asAddress(process.env.NEXT_PUBLIC_REFUEL_VAULT_ADDRESS),
+};
+
+export const deployBlock = BigInt(env(process.env.NEXT_PUBLIC_DEPLOY_BLOCK, "0"));
+
+export const reownProjectId = env(process.env.NEXT_PUBLIC_REOWN_PROJECT_ID);
+export const siteUrl = env(process.env.NEXT_PUBLIC_SITE_URL, "https://elyport.com");
+
+export type SourceChain = {
+  id: number;
+  name: string;
+  native: string;
+  coingeckoId: string;
+  usdc?: Address;
+  deposit?: Address;
+};
+
+/** Chains users can pay from. Solana is served through the Route option (third-party bridge). */
+export const sourceChains: SourceChain[] = [
+  {
+    id: mainnet.id,
+    name: "Ethereum",
+    native: "ETH",
+    coingeckoId: "ethereum",
+    usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    deposit: asAddress(process.env.NEXT_PUBLIC_REFUEL_DEPOSIT_1),
+  },
+  {
+    id: base.id,
+    name: "Base",
+    native: "ETH",
+    coingeckoId: "ethereum",
+    usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    deposit: asAddress(process.env.NEXT_PUBLIC_REFUEL_DEPOSIT_8453),
+  },
+  {
+    id: arbitrum.id,
+    name: "Arbitrum",
+    native: "ETH",
+    coingeckoId: "ethereum",
+    usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    deposit: asAddress(process.env.NEXT_PUBLIC_REFUEL_DEPOSIT_42161),
+  },
+  {
+    id: bsc.id,
+    name: "BNB Chain",
+    native: "BNB",
+    coingeckoId: "binancecoin",
+    deposit: asAddress(process.env.NEXT_PUBLIC_REFUEL_DEPOSIT_56),
+  },
+  {
+    id: hyperEvm.id,
+    name: "HyperEVM",
+    native: "HYPE",
+    coingeckoId: "hyperliquid",
+    deposit: asAddress(process.env.NEXT_PUBLIC_REFUEL_DEPOSIT_999),
+  },
+];
+
+export const REFUEL_FEE_BPS = 50; // 0.5%
+export const REFUEL_PRESETS_USD = [1, 3, 5, 10];
+export const REFUEL_MAX_USD = 10;
+
+export const explorerTx = (hash: string) => `${elysium.blockExplorers.default.url}/tx/${hash}`;
+export const explorerAddress = (a: string) => `${elysium.blockExplorers.default.url}/address/${a}`;

@@ -1,0 +1,316 @@
+const lockTuple = {
+  type: "tuple",
+  components: [
+    { name: "token", type: "address" },
+    { name: "owner", type: "address" },
+    { name: "amount", type: "uint128" },
+    { name: "unlockAt", type: "uint64" },
+    { name: "createdAt", type: "uint64" },
+    { name: "isLP", type: "bool" },
+    { name: "withdrawn", type: "bool" },
+  ],
+} as const;
+
+export const lockerAbi = [
+  { type: "function", name: "lockFee", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "lockCount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  {
+    type: "function",
+    name: "getLock",
+    stateMutability: "view",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [{ ...lockTuple, name: "" }],
+  },
+  {
+    type: "function",
+    name: "getLocks",
+    stateMutability: "view",
+    inputs: [
+      { name: "start", type: "uint256" },
+      { name: "limit", type: "uint256" },
+      { name: "newestFirst", type: "bool" },
+    ],
+    outputs: [
+      { name: "page", type: "tuple[]", components: lockTuple.components },
+      { name: "ids", type: "uint256[]" },
+    ],
+  },
+  {
+    type: "function",
+    name: "lockIdsByToken",
+    stateMutability: "view",
+    inputs: [{ name: "token", type: "address" }],
+    outputs: [{ type: "uint256[]" }],
+  },
+  {
+    type: "function",
+    name: "lockIdsByOwner",
+    stateMutability: "view",
+    inputs: [{ name: "lockOwner", type: "address" }],
+    outputs: [{ type: "uint256[]" }],
+  },
+  {
+    type: "function",
+    name: "createLock",
+    stateMutability: "payable",
+    inputs: [
+      { name: "token", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "unlockAt", type: "uint64" },
+      { name: "lockOwner", type: "address" },
+      { name: "isLP", type: "bool" },
+      { name: "note", type: "string" },
+    ],
+    outputs: [{ name: "id", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "extendLock",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "id", type: "uint256" },
+      { name: "newUnlockAt", type: "uint64" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "withdraw",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    type: "event",
+    name: "LockCreated",
+    inputs: [
+      { name: "id", type: "uint256", indexed: true },
+      { name: "token", type: "address", indexed: true },
+      { name: "owner", type: "address", indexed: true },
+      { name: "amount", type: "uint256", indexed: false },
+      { name: "unlockAt", type: "uint64", indexed: false },
+      { name: "isLP", type: "bool", indexed: false },
+      { name: "note", type: "string", indexed: false },
+    ],
+  },
+] as const;
+
+const scheduleTuple = {
+  type: "tuple",
+  components: [
+    { name: "token", type: "address" },
+    { name: "creator", type: "address" },
+    { name: "beneficiary", type: "address" },
+    { name: "total", type: "uint128" },
+    { name: "released", type: "uint128" },
+    { name: "start", type: "uint64" },
+    { name: "cliff", type: "uint64" },
+    { name: "duration", type: "uint64" },
+    { name: "period", type: "uint64" },
+    { name: "revocable", type: "bool" },
+    { name: "revoked", type: "bool" },
+  ],
+} as const;
+
+export const vestingAbi = [
+  { type: "function", name: "vestingFee", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "scheduleCount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  {
+    type: "function",
+    name: "getSchedule",
+    stateMutability: "view",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [{ ...scheduleTuple, name: "" }],
+  },
+  {
+    type: "function",
+    name: "claimable",
+    stateMutability: "view",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "scheduleIdsByToken",
+    stateMutability: "view",
+    inputs: [{ name: "token", type: "address" }],
+    outputs: [{ type: "uint256[]" }],
+  },
+  {
+    type: "function",
+    name: "scheduleIdsByBeneficiary",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256[]" }],
+  },
+  {
+    type: "function",
+    name: "createSchedules",
+    stateMutability: "payable",
+    inputs: [
+      { name: "token", type: "address" },
+      { name: "beneficiaries", type: "address[]" },
+      { name: "amounts", type: "uint256[]" },
+      { name: "start", type: "uint64" },
+      { name: "cliff", type: "uint64" },
+      { name: "duration", type: "uint64" },
+      { name: "period", type: "uint64" },
+      { name: "revocable", type: "bool" },
+    ],
+    outputs: [{ name: "firstId", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "claim",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [{ name: "amount", type: "uint256" }],
+  },
+  {
+    type: "event",
+    name: "ScheduleCreated",
+    inputs: [
+      { name: "id", type: "uint256", indexed: true },
+      { name: "token", type: "address", indexed: true },
+      { name: "beneficiary", type: "address", indexed: true },
+      { name: "creator", type: "address", indexed: false },
+      { name: "total", type: "uint256", indexed: false },
+      { name: "start", type: "uint64", indexed: false },
+      { name: "cliff", type: "uint64", indexed: false },
+      { name: "duration", type: "uint64", indexed: false },
+      { name: "period", type: "uint64", indexed: false },
+      { name: "revocable", type: "bool", indexed: false },
+    ],
+  },
+] as const;
+
+export const dropAbi = [
+  { type: "function", name: "dropFee", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  {
+    type: "function",
+    name: "MAX_RECIPIENTS",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "dropNative",
+    stateMutability: "payable",
+    inputs: [
+      { name: "recipients", type: "address[]" },
+      { name: "amounts", type: "uint256[]" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "dropToken",
+    stateMutability: "payable",
+    inputs: [
+      { name: "token", type: "address" },
+      { name: "recipients", type: "address[]" },
+      { name: "amounts", type: "uint256[]" },
+    ],
+    outputs: [],
+  },
+] as const;
+
+export const vaultAbi = [
+  { type: "error", name: "NotRelayer", inputs: [] },
+  { type: "error", name: "AlreadyProcessed", inputs: [] },
+  { type: "error", name: "OverTxCap", inputs: [] },
+  { type: "error", name: "OverWalletCap", inputs: [] },
+  { type: "error", name: "OverDailyCap", inputs: [] },
+  { type: "error", name: "InsufficientStock", inputs: [] },
+  { type: "error", name: "TransferFailed", inputs: [] },
+  { type: "error", name: "ZeroAddress", inputs: [] },
+  { type: "function", name: "stock", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "maxPerTx", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  {
+    type: "function",
+    name: "processed",
+    stateMutability: "view",
+    inputs: [{ name: "depositKey", type: "bytes32" }],
+    outputs: [{ type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "dispense",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "depositKey", type: "bytes32" },
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [],
+  },
+] as const;
+
+const depositTuple = {
+  type: "tuple",
+  components: [
+    { name: "sender", type: "address" },
+    { name: "recipient", type: "address" },
+    { name: "token", type: "address" },
+    { name: "amount", type: "uint256" },
+    { name: "createdAt", type: "uint64" },
+    { name: "status", type: "uint8" },
+  ],
+} as const;
+
+export const depositAbi = [
+  {
+    type: "function",
+    name: "depositNative",
+    stateMutability: "payable",
+    inputs: [{ name: "recipient", type: "address" }],
+    outputs: [{ name: "id", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "depositToken",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "token", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "recipient", type: "address" },
+    ],
+    outputs: [{ name: "id", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "getDeposit",
+    stateMutability: "view",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [{ ...depositTuple, name: "" }],
+  },
+  {
+    type: "function",
+    name: "markFulfilled",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "ids", type: "uint256[]" },
+      { name: "elysiumTxs", type: "bytes32[]" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "refund",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    type: "event",
+    name: "Deposited",
+    inputs: [
+      { name: "id", type: "uint256", indexed: true },
+      { name: "sender", type: "address", indexed: true },
+      { name: "recipient", type: "address", indexed: true },
+      { name: "token", type: "address", indexed: false },
+      { name: "amount", type: "uint256", indexed: false },
+    ],
+  },
+] as const;
