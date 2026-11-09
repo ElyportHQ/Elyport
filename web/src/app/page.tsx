@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CtaScene, FanOut, HeroScene, LockRing, RouteViz, TokenGauge, VestBars } from "@/components/home/Scenes";
 import { ActivityTicker, LiveStats } from "@/components/home/LiveStats";
+import { HeroSection } from "@/components/home/HeroSection";
 import { HomeFooter } from "@/components/Footer";
 
 const steps = [
@@ -20,7 +21,7 @@ const faqs = [
 export default function Home() {
   return (
     <>
-      <section className="hero">
+      <HeroSection>
         <HeroScene />
         <div className="hero-copy">
           <span className="live-badge">
@@ -39,7 +40,7 @@ export default function Home() {
             or refuel gas in 1 click →
           </Link>
         </div>
-      </section>
+      </HeroSection>
 
       <section style={{ position: "relative", padding: "120px 24px 40px", textAlign: "center", overflow: "hidden" }}>
         <div className="glow-bg" aria-hidden="true" />

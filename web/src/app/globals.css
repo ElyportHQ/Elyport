@@ -169,7 +169,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .simple-footer .container { padding-top: 22px; padding-bottom: 22px; display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; font-size: 13px; color: var(--muted); }
 
 /* ---------------------------------------------------------------- app pages */
-.page { padding: 48px 0 80px; }
+.page { padding-top: 48px; padding-bottom: 80px; }
 .page-head { margin-bottom: 30px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; }
 .page-head h1 { margin: 10px 0 8px; font-size: clamp(44px, 7vw, 64px); line-height: 1; font-weight: 400; letter-spacing: -0.045em; }
 .page-head p { margin: 0; font-size: 18px; color: var(--body); }
@@ -235,6 +235,33 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .docs-nav a { padding: 8px 12px; border-radius: 10px; }
 .docs-nav a:hover { background: #eceff3; }
 @media (max-width: 900px) { .docs-grid { grid-template-columns: 1fr; } .docs-nav { position: static; flex-direction: row; flex-wrap: wrap; } }
+
+/* ---------------------------------------------------------------- portal transition */
+.portal-enter { animation: portalIn .5s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes portalIn {
+  from { opacity: 0; transform: scale(1.025); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+/* ---------------------------------------------------------------- hero scroll (fly-through) */
+.hero-gate { transform-box: view-box; transform-origin: 720px 700px; transform: scale(calc(1 + var(--hp, 0) * 1.8)); will-change: transform; }
+.hero-clouds-front { transform: translateY(calc(var(--hp, 0) * -140px)); }
+.hero-clouds-mid { transform: translateY(calc(var(--hp, 0) * -70px)); }
+.hero-copy { opacity: calc(1 - var(--hp, 0) * 1.7); transform: translateY(calc(var(--hp, 0) * -70px)); }
+
+/* ---------------------------------------------------------------- command palette */
+.cmdk-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(20,23,28,.28); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: flex; align-items: flex-start; justify-content: center; padding: 12vh 16px 16px; animation: fadeIn .15s ease both; }
+.cmdk { width: 100%; max-width: 620px; border-radius: 22px; background: rgba(255,255,255,.96); border: 1px solid #e3e7ec;
+  box-shadow: 0 30px 80px rgba(20,23,28,.25); overflow: hidden; animation: portalIn .25s ease both; }
+.cmdk input { width: 100%; height: 60px; border: 0; outline: none; padding: 0 20px; font-size: 18px; background: transparent; border-bottom: 1px solid #eef0f3; }
+.cmdk ul { list-style: none; margin: 0; padding: 8px; max-height: 50vh; overflow-y: auto; }
+.cmdk li button { width: 100%; display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 0 12px; border: 0; border-radius: 14px; background: transparent; text-align: left; }
+.cmdk li button[aria-selected="true"] { background: #f2f4f8; }
+.cmdk .tile { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: #eef0f4; flex: none; }
+.cmdk .hint { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.cmdk .foot { display: flex; gap: 16px; padding: 10px 18px; border-top: 1px solid #eef0f3; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

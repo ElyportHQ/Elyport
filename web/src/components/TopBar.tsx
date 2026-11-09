@@ -8,6 +8,7 @@ import { useAppKit } from "@reown/appkit/react";
 import { Emblem } from "./Emblem";
 import { IconBars, IconClose, IconDrop, IconLock, IconMenu, IconSearch, IconSend } from "./Icons";
 import { short } from "@/lib/format";
+import { CommandPalette, useCommandPaletteHotkey } from "./CommandPalette";
 
 const links = [
   { href: "/refuel", label: "Refuel" },
@@ -28,6 +29,8 @@ const tools = [
 export function TopBar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  useCommandPaletteHotkey(setPaletteOpen);
   const { address, isConnected } = useAccount();
   const { open: openWallet } = useAppKit();
   const isHome = pathname === "/";
@@ -47,9 +50,9 @@ export function TopBar() {
           ))}
         </nav>
         <div className="topbar-actions">
-          <Link href="/locks" className="icon-btn" aria-label="Search tokens and locks">
+          <button type="button" className="icon-btn" aria-label="Search (⌘K)" onClick={() => setPaletteOpen(true)}>
             <IconSearch />
-          </Link>
+          </button>
           {isHome ? (
             <Link href="/refuel" className="btn btn-dark">
               Launch app
@@ -78,6 +81,7 @@ export function TopBar() {
         </div>
       </div>
 
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       {open && (
         <nav className="mobile-menu" aria-label="Menu">
           <div className="eyebrow" style={{ padding: "10px 12px 6px" }}>

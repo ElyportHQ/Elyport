@@ -72,6 +72,7 @@ export function HeroScene() {
       </defs>
 
       <g transform="translate(0 90)">
+        <g className="hero-gate">
         <circle cx="720" cy="640" r="460" fill="url(#hSun)" />
         <g opacity="0.35">
           <animateTransform attributeName="transform" type="rotate" from="0 720 640" to="360 720 640" dur="180s" repeatCount="indefinite" />
@@ -102,6 +103,7 @@ export function HeroScene() {
             <animate attributeName="opacity" values="0;1;0" dur={`${p.dur}s`} begin={`${p.begin}s`} repeatCount="indefinite" />
           </circle>
         ))}
+        </g>
       </g>
 
       <Clouds />
@@ -119,6 +121,7 @@ function Clouds() {
         <ellipse cx="1240" cy="710" rx="320" ry="56" />
         <ellipse cx="720" cy="760" rx="420" ry="40" />
       </g>
+      <g className="hero-clouds-mid">
       <g filter="url(#hB8)">
         <animateTransform attributeName="transform" type="translate" values="0 0;56 0;0 0" dur="26s" repeatCount="indefinite" />
         {[120, 520, 980, 1360].map((x, i) => (
@@ -128,6 +131,8 @@ function Clouds() {
           </g>
         ))}
       </g>
+      </g>
+      <g className="hero-clouds-front">
       <g filter="url(#hB8)">
         <animateTransform attributeName="transform" type="translate" values="0 0;-80 0;0 0" dur="20s" repeatCount="indefinite" />
         <ellipse cx="300" cy="900" rx="420" ry="90" fill="#E6EBF3" />
@@ -135,6 +140,7 @@ function Clouds() {
         <ellipse cx="1120" cy="905" rx="440" ry="92" fill="#E6EBF3" />
         <ellipse cx="1120" cy="884" rx="410" ry="78" fill="#FFFFFF" />
         <ellipse cx="720" cy="940" rx="520" ry="80" fill="#FFFFFF" />
+      </g>
       </g>
     </>
   );
