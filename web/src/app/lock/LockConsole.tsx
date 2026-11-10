@@ -488,13 +488,13 @@ function TrancheEditor({
       </div>
       <div className="stack" style={{ gap: 8 }}>
         {tranches.map((t, i) => (
-          <div key={i} style={{ display: "grid", gridTemplateColumns: "84px 1fr auto", gap: 8, alignItems: "center" }}>
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "78px minmax(0, 1fr) 44px", gap: 8, alignItems: "center" }}>
             <div style={{ position: "relative" }}>
               <input className="input" aria-label={`Tranche ${i + 1} percent`} inputMode="decimal" value={t.pct} onChange={(e) => set(i, "pct", e.target.value.replace(/[^\d.]/g, ""))} style={{ paddingRight: 26 }} />
               <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "#5D6573" }}>%</span>
             </div>
-            <input className="input" type="date" aria-label={`Tranche ${i + 1} date`} value={t.date} onChange={(e) => set(i, "date", e.target.value)} />
-            <button type="button" className="btn btn-ghost" aria-label={`Remove tranche ${i + 1}`} disabled={tranches.length <= 1} onClick={() => setTranches(tranches.filter((_, j) => j !== i))}>
+            <input className="input" type="date" style={{ minWidth: 0 }} aria-label={`Tranche ${i + 1} date`} value={t.date} onChange={(e) => set(i, "date", e.target.value)} />
+            <button type="button" className="btn btn-ghost" style={{ width: 44, minWidth: 44, padding: 0 }} aria-label={`Remove tranche ${i + 1}`} disabled={tranches.length <= 1} onClick={() => setTranches(tranches.filter((_, j) => j !== i))}>
               ✕
             </button>
             {amounts?.[i] !== undefined && decimals !== undefined && (
