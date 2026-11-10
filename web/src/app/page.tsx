@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CtaScene, FanOut, HeroScene, LockRing, RouteViz, TokenGauge, VestBars } from "@/components/home/Scenes";
-import { ActivityTicker, LiveStats } from "@/components/home/LiveStats";
+import { ActivityTicker } from "@/components/home/LiveStats";
+import { HomeStats } from "@/components/home/HomeStats";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HomeFooter } from "@/components/Footer";
 import { OfficialToken } from "@/components/OfficialToken";
@@ -207,7 +208,7 @@ export default function Home() {
       <section className="white-band" style={{ overflow: "hidden" }}>
         <div className="container" style={{ paddingTop: 64, paddingBottom: 40 }}>
           <span className="eyebrow">Elyport at a glance</span>
-          <LiveStats />
+          <HomeStats />
         </div>
         <ActivityTicker />
       </section>
