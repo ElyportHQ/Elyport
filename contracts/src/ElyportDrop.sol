@@ -11,6 +11,10 @@ import {ElyportFees} from "./ElyportFees.sol";
 ///         Tokens move straight from the sender to each recipient; native sends that a
 ///         recipient rejects are refunded to the sender instead of failing the batch.
 contract ElyportDrop is ElyportFees, ReentrancyGuard {
+    /// @notice Hard cap on the fee. The owner can lower or raise it, but never above this.
+    uint256 public constant MAX_DROP_FEE = 0.5 ether;
+    /// @notice Gas forwarded to each recipient of a HYPE drop.
+    uint256 public constant NATIVE_SEND_GAS = 60_000;
     using SafeERC20 for IERC20;
 
     uint256 public constant MAX_RECIPIENTS = 500;
@@ -30,6 +34,7 @@ contract ElyportDrop is ElyportFees, ReentrancyGuard {
     constructor(address initialOwner, address initialFeeRecipient, uint256 initialDropFee)
         ElyportFees(initialOwner, initialFeeRecipient)
     {
+        _checkFee(initialDropFee, MAX_DROP_FEE);
         dropFee = initialDropFee;
         emit DropFeeUpdated(initialDropFee);
     }
@@ -40,6 +45,7 @@ contract ElyportDrop is ElyportFees, ReentrancyGuard {
     }
 
     function setDropFee(uint256 fee) external onlyOwner {
+        _checkFee(fee, MAX_DROP_FEE);
         dropFee = fee;
         emit DropFeeUpdated(fee);
     }
@@ -57,8 +63,9 @@ contract ElyportDrop is ElyportFees, ReentrancyGuard {
         uint256 failed;
         for (uint256 i; i < n; ++i) {
             if (recipients[i] == address(0)) revert ZeroAddress();
-            // Gas-capped so a malicious recipient cannot grief the whole batch.
-            (bool ok,) = recipients[i].call{value: amounts[i], gas: 30_000}("");
+            // Gas-capped so a malicious recipient cannot grief the whole batch; 60k leaves room for
+            // smart-contract wallets such as Safe.
+            (bool ok,) = recipients[i].call{value: amounts[i], gas: NATIVE_SEND_GAS}("");
             if (!ok) {
                 failed += amounts[i];
                 emit NativeSendFailed(recipients[i], amounts[i]);

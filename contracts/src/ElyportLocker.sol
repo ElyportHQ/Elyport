@@ -19,6 +19,8 @@ interface IPairTokens {
 ///         are verified as V2-style pairs and also indexed under both underlying tokens, so a
 ///         token's page shows the liquidity locked for it.
 contract ElyportLocker is ElyportFees, ReentrancyGuard {
+    /// @notice Hard cap on the fee. The owner can lower or raise it, but never above this.
+    uint256 public constant MAX_LOCK_FEE = 1 ether;
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -65,11 +67,13 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
     constructor(address initialOwner, address initialFeeRecipient, uint256 initialLockFee)
         ElyportFees(initialOwner, initialFeeRecipient)
     {
+        _checkFee(initialLockFee, MAX_LOCK_FEE);
         lockFee = initialLockFee;
         emit LockFeeUpdated(initialLockFee);
     }
 
     function setLockFee(uint256 fee) external onlyOwner {
+        _checkFee(fee, MAX_LOCK_FEE);
         lockFee = fee;
         emit LockFeeUpdated(fee);
     }

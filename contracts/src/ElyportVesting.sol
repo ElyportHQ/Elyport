@@ -12,6 +12,8 @@ import {ElyportFees} from "./ElyportFees.sol";
 ///         Nothing is claimable before `start + cliff`; after that, the vested share follows
 ///         elapsed time since `start`, rounded down to whole `period`s.
 contract ElyportVesting is ElyportFees, ReentrancyGuard {
+    /// @notice Hard cap on the fee. The owner can lower or raise it, but never above this.
+    uint256 public constant MAX_VESTING_FEE = 1 ether;
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -70,6 +72,7 @@ contract ElyportVesting is ElyportFees, ReentrancyGuard {
     constructor(address initialOwner, address initialFeeRecipient, uint256 initialVestingFee)
         ElyportFees(initialOwner, initialFeeRecipient)
     {
+        _checkFee(initialVestingFee, MAX_VESTING_FEE);
         vestingFee = initialVestingFee;
         emit VestingFeeUpdated(initialVestingFee);
     }
@@ -80,6 +83,7 @@ contract ElyportVesting is ElyportFees, ReentrancyGuard {
     }
 
     function setVestingFee(uint256 fee) external onlyOwner {
+        _checkFee(fee, MAX_VESTING_FEE);
         vestingFee = fee;
         emit VestingFeeUpdated(fee);
     }

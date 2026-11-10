@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
+import {ElyportFees} from "../src/ElyportFees.sol";
 import {ElyportDrop} from "../src/ElyportDrop.sol";
 import {MockToken, RejectEther} from "./Mocks.sol";
 
@@ -85,5 +86,34 @@ contract ElyportDropTest is Test {
         drop.dropNative{value: 0.2 ether + fee}(r, a);
         assertEq(treasury.balance, fee);
     }
+
+    function test_DropFeeHasHardCap() public {
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(ElyportFees.FeeTooHigh.selector, 0.5 ether));
+        drop.setDropFee(0.6 ether);
+    }
+
+    function test_ContractWalletWithFallbackReceives() public {
+        GasHungryWallet w = new GasHungryWallet();
+        address[] memory r = new address[](1);
+        r[0] = address(w);
+        uint256[] memory a = new uint256[](1);
+        a[0] = 1 ether;
+        vm.deal(address(this), 10 ether);
+        drop.dropNative{value: 1 ether + FEE}(r, a);
+        assertEq(address(w).balance, 1 ether);
+    }
+
+    receive() external payable {}
 }
 
+/// @dev Two cold SSTOREs (~44k gas) on receive: more than the old 30k stipend allowed.
+contract GasHungryWallet {
+    uint256 private a;
+    uint256 private b;
+
+    receive() external payable {
+        a = msg.value;
+        b = block.timestamp;
+    }
+}

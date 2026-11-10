@@ -70,7 +70,7 @@ contract ElyportRefuelTest is Test {
     function test_DepositTokenAndFulfil() public {
         vm.startPrank(user);
         usdc.approve(address(deposit), 5e6);
-        uint256 id = deposit.depositToken(address(usdc), 5e6, user);
+        uint256 id = deposit.depositToken(address(usdc), 5e6, user, 0);
         vm.stopPrank();
         assertEq(uint8(deposit.getDeposit(id).status), uint8(ElyportRefuelDeposit.Status.Pending));
 
@@ -88,7 +88,7 @@ contract ElyportRefuelTest is Test {
 
     function test_DepositNativeAndRefund() public {
         vm.prank(user);
-        uint256 id = deposit.depositNative{value: 0.002 ether}(user);
+        uint256 id = deposit.depositNative{value: 0.002 ether}(user, 0);
         uint256 before = user.balance;
         vm.prank(relayer);
         deposit.refund(id);
@@ -98,14 +98,14 @@ contract ElyportRefuelTest is Test {
     function test_RevertWhen_OutOfRange() public {
         vm.prank(user);
         vm.expectRevert(abi.encodeWithSelector(ElyportRefuelDeposit.OutOfRange.selector, 0.0003 ether, 0.004 ether));
-        deposit.depositNative{value: 0.01 ether}(user);
+        deposit.depositNative{value: 0.01 ether}(user, 0);
     }
 
     function test_SweepCannotTouchPending() public {
         vm.startPrank(user);
         usdc.approve(address(deposit), 10e6);
-        uint256 a = deposit.depositToken(address(usdc), 5e6, user);
-        deposit.depositToken(address(usdc), 4e6, user);
+        uint256 a = deposit.depositToken(address(usdc), 5e6, user, 0);
+        deposit.depositToken(address(usdc), 4e6, user, 0);
         vm.stopPrank();
 
         vm.prank(owner);
@@ -143,5 +143,74 @@ contract ElyportRefuelTest is Test {
         (bool uOk,,) = d.limits(address(usdc));
         assertFalse(uOk);
     }
-}
 
+    function test_StoresMinOut() public {
+        vm.prank(user);
+        uint256 id = deposit.depositNative{value: 0.002 ether}(user, 0.15 ether);
+        assertEq(deposit.getDeposit(id).minOut, 0.15 ether);
+    }
+
+    function test_SenderRefundsAfterDelay() public {
+        vm.prank(user);
+        uint256 id = deposit.depositNative{value: 0.002 ether}(user, 0);
+        uint256 at = block.timestamp + deposit.REFUND_DELAY();
+
+        vm.prank(user);
+        vm.expectRevert(abi.encodeWithSelector(ElyportRefuelDeposit.TooEarly.selector, at));
+        deposit.claimRefund(id);
+
+        vm.warp(at);
+        address other = makeAddr("other");
+        vm.prank(other);
+        vm.expectRevert(ElyportRefuelDeposit.NotSender.selector);
+        deposit.claimRefund(id);
+
+        uint256 before = user.balance;
+        vm.prank(user);
+        deposit.claimRefund(id);
+        assertEq(user.balance - before, 0.002 ether);
+        assertEq(deposit.reserved(address(0)), 0);
+
+        vm.prank(user);
+        vm.expectRevert(ElyportRefuelDeposit.NotPending.selector);
+        deposit.claimRefund(id);
+    }
+
+    function test_SenderRefundWorksWhilePaused() public {
+        vm.prank(user);
+        uint256 id = deposit.depositNative{value: 0.002 ether}(user, 0);
+        vm.prank(owner);
+        deposit.pause();
+        vm.warp(block.timestamp + deposit.REFUND_DELAY());
+        vm.prank(user);
+        deposit.claimRefund(id);
+        assertEq(uint8(deposit.getDeposit(id).status), uint8(ElyportRefuelDeposit.Status.Refunded));
+    }
+
+    function test_FulfilledCannotBeSelfRefunded() public {
+        vm.prank(user);
+        uint256 id = deposit.depositNative{value: 0.002 ether}(user, 0);
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = id;
+        vm.prank(relayer);
+        deposit.markFulfilled(ids, new bytes32[](1));
+        vm.warp(block.timestamp + deposit.REFUND_DELAY());
+        vm.prank(user);
+        vm.expectRevert(ElyportRefuelDeposit.NotPending.selector);
+        deposit.claimRefund(id);
+    }
+
+    function test_CapsHaveCeilings() public {
+        vm.startPrank(owner);
+        vm.expectRevert(ElyportRefuelVault.CapAboveCeiling.selector);
+        vault.setCaps(1.01 ether, 2 ether, 50 ether);
+        vm.expectRevert(ElyportRefuelVault.CapAboveCeiling.selector);
+        vault.setCaps(1 ether, 3.01 ether, 50 ether);
+        vm.expectRevert(ElyportRefuelVault.CapAboveCeiling.selector);
+        vault.setCaps(1 ether, 3 ether, 50.01 ether);
+        vault.setCaps(1 ether, 3 ether, 50 ether);
+        vm.stopPrank();
+        vm.expectRevert(ElyportRefuelVault.CapAboveCeiling.selector);
+        new ElyportRefuelVault(owner, relayer, 2 ether, 1 ether, 1 ether);
+    }
+}

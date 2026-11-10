@@ -11,7 +11,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 /// @title ElyportRefuelDeposit
 /// @notice Deployed on each source chain (Ethereum, Base, Arbitrum, BNB Chain, HyperEVM).
 ///         Users pay here; the relayer sees the `Deposited` event and sends HYPE on Elysium
-///         from the RefuelVault. Deposits stay refundable until the relayer marks them done.
+///         from the RefuelVault. Deposits stay refundable until the relayer marks them done, and
+///         the sender can refund a deposit themselves once it has been pending for REFUND_DELAY.
 contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -27,6 +28,7 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
         address recipient; // wallet on Elysium
         address token; // address(0) = native
         uint256 amount;
+        uint256 minOut; // least HYPE (wei) the sender accepts on Elysium; less means refund
         uint64 createdAt;
         Status status;
     }
@@ -36,6 +38,9 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
         uint256 min;
         uint256 max;
     }
+
+    /// @notice After this long, a deposit that is still pending can be refunded by its sender.
+    uint256 public constant REFUND_DELAY = 24 hours;
 
     /// @dev address(0) holds the limits for the chain's native token.
     mapping(address token => TokenLimits) public limits;
@@ -52,9 +57,16 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
     error TransferFailed();
     error UnknownDeposit();
     error ExceedsFreeBalance(uint256 free);
+    error NotSender();
+    error TooEarly(uint256 availableAt);
 
     event Deposited(
-        uint256 indexed id, address indexed sender, address indexed recipient, address token, uint256 amount
+        uint256 indexed id,
+        address indexed sender,
+        address indexed recipient,
+        address token,
+        uint256 amount,
+        uint256 minOut
     );
     event Fulfilled(uint256 indexed id, bytes32 elysiumTx);
     event Refunded(uint256 indexed id, address indexed to, uint256 amount);
@@ -86,12 +98,14 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
         }
     }
 
-    function depositNative(address recipient) external payable whenNotPaused returns (uint256 id) {
-        id = _record(recipient, address(0), msg.value);
+    /// @param minOut Least HYPE (wei) to receive on Elysium. If the relayer cannot deliver at least
+    ///        this much, the deposit is refunded instead.
+    function depositNative(address recipient, uint256 minOut) external payable whenNotPaused returns (uint256 id) {
+        id = _record(recipient, address(0), msg.value, minOut);
     }
 
     /// @dev Only plain ERC-20s (e.g. USDC) should be allowed; the amount must arrive in full.
-    function depositToken(address token, uint256 amount, address recipient)
+    function depositToken(address token, uint256 amount, address recipient, uint256 minOut)
         external
         whenNotPaused
         nonReentrant
@@ -101,7 +115,7 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
         uint256 before = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         uint256 received = IERC20(token).balanceOf(address(this)) - before;
-        id = _record(recipient, token, received);
+        id = _record(recipient, token, received, minOut);
     }
 
     // ---------------------------------------------------------------- relayer
@@ -120,12 +134,19 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
     /// @notice Returns a pending deposit to its sender (e.g. vault empty or wallet over its cap).
     function refund(uint256 id) external nonReentrant {
         if (!isRelayer[msg.sender] && msg.sender != owner()) revert NotRelayer();
+        _refund(id);
+    }
+
+    // ---------------------------------------------------------------- sender
+
+    /// @notice The sender takes back a deposit that is still pending after REFUND_DELAY.
+    ///         Works even when the contract is paused, so funds can never be stuck.
+    function claimRefund(uint256 id) external nonReentrant {
         Deposit storage d = _get(id);
-        if (d.status != Status.Pending) revert NotPending();
-        d.status = Status.Refunded;
-        reserved[d.token] -= d.amount;
-        _send(d.token, d.sender, d.amount);
-        emit Refunded(id, d.sender, d.amount);
+        if (msg.sender != d.sender) revert NotSender();
+        uint256 at = uint256(d.createdAt) + REFUND_DELAY;
+        if (block.timestamp < at) revert TooEarly(at);
+        _refund(id);
     }
 
     // ---------------------------------------------------------------- views
@@ -171,15 +192,24 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
 
     // ---------------------------------------------------------------- internal
 
-    function _record(address recipient, address token, uint256 amount) private returns (uint256 id) {
+    function _record(address recipient, address token, uint256 amount, uint256 minOut) private returns (uint256 id) {
         if (recipient == address(0)) revert ZeroAddress();
         TokenLimits memory l = limits[token];
         if (!l.allowed) revert TokenNotAllowed();
         if (amount < l.min || amount > l.max) revert OutOfRange(l.min, l.max);
         id = _deposits.length;
-        _deposits.push(Deposit(msg.sender, recipient, token, amount, uint64(block.timestamp), Status.Pending));
+        _deposits.push(Deposit(msg.sender, recipient, token, amount, minOut, uint64(block.timestamp), Status.Pending));
         reserved[token] += amount;
-        emit Deposited(id, msg.sender, recipient, token, amount);
+        emit Deposited(id, msg.sender, recipient, token, amount, minOut);
+    }
+
+    function _refund(uint256 id) private {
+        Deposit storage d = _get(id);
+        if (d.status != Status.Pending) revert NotPending();
+        d.status = Status.Refunded;
+        reserved[d.token] -= d.amount;
+        _send(d.token, d.sender, d.amount);
+        emit Refunded(id, d.sender, d.amount);
     }
 
     function _send(address token, address to, uint256 amount) private {

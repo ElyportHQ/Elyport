@@ -21,6 +21,7 @@ abstract contract ElyportFees is Ownable2Step {
     error FeeTransferFailed();
     error ZeroAddress();
     error InvalidDiscount();
+    error FeeTooHigh(uint256 max);
 
     event FeeRecipientUpdated(address indexed feeRecipient);
     event FeePaid(address indexed payer, uint256 amount);
@@ -54,6 +55,11 @@ abstract contract ElyportFees is Ownable2Step {
         (bool ok, bytes memory data) = t.staticcall{gas: 50_000}(abi.encodeWithSelector(0x70a08231, user));
         if (!ok || data.length < 32 || abi.decode(data, (uint256)) < discountMinBalance) return baseFee;
         return (baseFee * (10_000 - discountBps)) / 10_000;
+    }
+
+    /// @dev Reverts when a fee is above the contract's hard cap, so a fee can never be raised without limit.
+    function _checkFee(uint256 fee, uint256 cap) internal pure {
+        if (fee > cap) revert FeeTooHigh(cap);
     }
 
     /// @dev Takes exactly `fee` out of the native value sent with the call and forwards it.

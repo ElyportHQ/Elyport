@@ -254,5 +254,12 @@ contract ElyportLockerTest is Test {
         vm.expectRevert();
         locker.setDiscount(address(token), 1, 1_000);
     }
-}
 
+    function test_FeeHasHardCap() public {
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(ElyportFees.FeeTooHigh.selector, 1 ether));
+        locker.setLockFee(1 ether + 1);
+        vm.expectRevert(abi.encodeWithSelector(ElyportFees.FeeTooHigh.selector, 1 ether));
+        new ElyportLocker(owner, treasury, 2 ether);
+    }
+}

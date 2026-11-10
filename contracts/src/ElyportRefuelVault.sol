@@ -17,6 +17,11 @@ contract ElyportRefuelVault is Ownable2Step, Pausable, ReentrancyGuard {
     mapping(address wallet => mapping(uint256 day => uint256)) public sentToWalletOnDay;
     mapping(uint256 day => uint256) public sentOnDay;
 
+    /// @notice Hard ceilings for the caps. The owner can tune caps, but never above these.
+    uint256 public constant CEILING_PER_TX = 1 ether;
+    uint256 public constant CEILING_PER_WALLET_PER_DAY = 3 ether;
+    uint256 public constant CEILING_PER_DAY = 50 ether;
+
     uint256 public maxPerTx;
     uint256 public maxPerWalletPerDay;
     uint256 public maxPerDay;
@@ -29,6 +34,7 @@ contract ElyportRefuelVault is Ownable2Step, Pausable, ReentrancyGuard {
     error InsufficientStock();
     error TransferFailed();
     error ZeroAddress();
+    error CapAboveCeiling();
 
     event RelayerSet(address indexed relayer, bool allowed);
     event CapsUpdated(uint256 maxPerTx, uint256 maxPerWalletPerDay, uint256 maxPerDay);
@@ -55,7 +61,8 @@ contract ElyportRefuelVault is Ownable2Step, Pausable, ReentrancyGuard {
         emit Funded(msg.sender, msg.value);
     }
 
-    /// @param depositKey keccak256(sourceChainId, depositContract, depositId) — unique per source deposit.
+    /// @param depositKey Hash of the source deposit (chain, contract, id and its contents), so a reorged
+    ///        deposit with the same id but different contents gets a different key.
     function dispense(bytes32 depositKey, address to, uint256 amount) external whenNotPaused nonReentrant {
         if (!isRelayer[msg.sender]) revert NotRelayer();
         if (to == address(0)) revert ZeroAddress();
@@ -107,6 +114,7 @@ contract ElyportRefuelVault is Ownable2Step, Pausable, ReentrancyGuard {
     }
 
     function _setCaps(uint256 a, uint256 b, uint256 c) private {
+        if (a > CEILING_PER_TX || b > CEILING_PER_WALLET_PER_DAY || c > CEILING_PER_DAY) revert CapAboveCeiling();
         maxPerTx = a;
         maxPerWalletPerDay = b;
         maxPerDay = c;

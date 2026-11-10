@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
+import {ElyportFees} from "../src/ElyportFees.sol";
 import {ElyportVesting} from "../src/ElyportVesting.sol";
 import {MockToken, TaxToken} from "./Mocks.sol";
 
@@ -183,5 +184,10 @@ contract ElyportVestingTest is Test {
         vesting.createSchedules{value: 0}(address(token), b, a, uint64(block.timestamp), 0, 10, 1, false);
         assertEq(vesting.scheduleCount(), 1);
     }
-}
 
+    function test_VestingFeeHasHardCap() public {
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(ElyportFees.FeeTooHigh.selector, 1 ether));
+        vesting.setVestingFee(1.5 ether);
+    }
+}
