@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **Lock prompt on token pages** with no supply locked: "Dev of $X? Lock your dev buy in a minute" opens the Locker
+  with the token filled in (`/lock?token=0x…&type=token`), and holders can ask the dev on X in one click.
+- The Locker's "Recent on Elysium" list shows tickers and lock numbers instead of raw addresses.
 - **New share card for token pages** and a **Share to X** button there: share of supply locked, next unlock,
   and where the liquidity sits (verified LP lock, or sealed in a Montra pool).
 - **New share card for locks:** the X preview of `/lock/{id}` now shows the ticker, unlock date, amount, share of

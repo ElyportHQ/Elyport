@@ -35,7 +35,7 @@ const presets = [
   { label: "1y", days: 365 },
 ];
 
-export function LockConsole() {
+export function LockConsole({ initialToken, initialType }: { initialToken?: string; initialType?: "token" | "lp" } = {}) {
   const [tab, setTab] = useState<"create" | "mine">("create");
   return (
     <>
@@ -47,16 +47,16 @@ export function LockConsole() {
           My locks
         </button>
       </div>
-      {tab === "create" ? <CreateLock /> : <MyLocks />}
+      {tab === "create" ? <CreateLock initialToken={initialToken} initialType={initialType} /> : <MyLocks />}
     </>
   );
 }
 
-function CreateLock() {
+function CreateLock({ initialToken, initialType }: { initialToken?: string; initialType?: "token" | "lp" }) {
   const mounted = useMounted();
   const { address } = useAccount();
-  const [isLP, setIsLP] = useState(true);
-  const [token, setToken] = useState("");
+  const [isLP, setIsLP] = useState(initialType ? initialType === "lp" : true);
+  const [token, setToken] = useState(initialToken ?? "");
   const [amount, setAmount] = useState("");
   const [days, setDays] = useState(180);
   const [date, setDate] = useState("");
@@ -360,6 +360,10 @@ function RecentLocks() {
   const recent = useReadContract({ chainId: cid, address: contracts.locker, abi: lockerAbi, functionName: "getLocks", args: [0n, 5n, true], query: { enabled: !!contracts.locker } });
   const page = recent.data?.[0] ?? [];
   const ids = recent.data?.[1] ?? [];
+  const syms = useReadContracts({
+    contracts: page.map((l) => ({ chainId: cid, address: l.token, abi: erc20Abi, functionName: "symbol" as const })),
+    query: { enabled: page.length > 0 },
+  });
   return (
     <section className="panel">
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
@@ -377,8 +381,8 @@ function RecentLocks() {
           {page.map((l, i) => (
             <li key={ids[i].toString()}>
               <Link href={`/lock/${ids[i]}`}>
-                {short(l.token)}
-                {l.isLP ? " LP" : ""}
+                {(syms.data?.[i]?.result as string | undefined)?.slice(0, 16) ?? short(l.token)}
+                {l.isLP ? " LP" : ""} <span className="muted">#{ids[i].toString()}</span>
               </Link>
               <span className="mono" style={{ fontSize: 13, color: "#444B57" }}>
                 {mounted ? countdown(l.unlockAt) : "…"}

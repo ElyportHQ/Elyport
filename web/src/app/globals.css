@@ -608,3 +608,6 @@ body:has(.ew-page) { background: transparent; }
 .rl-lock { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #2bb582; box-shadow: 0 0 0 4px #dcf4ea; }
 .rl-foot { display: flex; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
 .rl-go { color: var(--indigo-ink); }
+
+/* Token page: nudge to lock */
+.lock-prompt { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; border-color: #d6dcf5; background: linear-gradient(120deg, #ffffff 0%, #f4f5ff 100%); }

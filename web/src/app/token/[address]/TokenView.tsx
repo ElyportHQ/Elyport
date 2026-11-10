@@ -158,6 +158,8 @@ export function TokenView({ token, montra }: { token: Address; montra?: { launch
         />
       )}
 
+      {mounted && !locks.isLoading && !lockIds.isLoading && ownLocks.length === 0 && <LockPrompt token={token} symbol={symbol} />}
+
       <section>
         <h2 style={{ fontWeight: 500, fontSize: 24 }}>Locks</h2>
         {lockList.length === 0 ? (
@@ -289,6 +291,32 @@ function BadgeEmbed({ token, tweet }: { token: Address; tweet: string }) {
         Want a live widget or a claim box on your site? See <Link href="/docs/widgets">Widgets</Link> and the{" "}
         <Link href="/docs/api">public API</Link>.
       </p>
+    </section>
+  );
+}
+
+/** Shown when none of the token's own supply is locked: a nudge for the dev, and a way for holders to ask. */
+function LockPrompt({ token, symbol }: { token: Address; symbol?: string }) {
+  const t = symbol ? `$${symbol}` : "this token";
+  const page = `${siteUrl}/token/${token}`;
+  const ask = `${symbol ? `$${symbol}` : "This token"} has no supply locked yet. Dev, lock your bag on @ElyportHQ so holders can check it:`;
+  return (
+    <section className="panel lock-prompt">
+      <div>
+        <div className="eyebrow">No tokens locked yet</div>
+        <h3 style={{ margin: "4px 0 6px", fontWeight: 500, fontSize: 22 }}>Dev of {t}? Lock your dev buy in a minute.</h3>
+        <p className="muted" style={{ margin: 0, fontSize: 15 }}>
+          It gets a public page, a countdown and a share card. Locks can be extended, never shortened.
+        </p>
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <Link className="btn btn-dark" href={`/lock?token=${token}&type=token`}>
+          Lock {t}
+        </Link>
+        <a className="btn btn-ghost" href={`https://x.com/intent/post?text=${encodeURIComponent(ask)}&url=${encodeURIComponent(page)}`} target="_blank" rel="noreferrer">
+          Holder? Ask the dev on X
+        </a>
+      </div>
     </section>
   );
 }
