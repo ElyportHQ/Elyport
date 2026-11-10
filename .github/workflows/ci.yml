@@ -48,3 +48,24 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+
+  sdk:
+    name: SDK (typecheck + build)
+    needs: web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: ABIs match the web app
+        run: tail -n +2 sdk/src/abis.ts | diff - web/src/lib/abis.ts
+      - name: Install
+        working-directory: sdk
+        run: npm install --no-audit --no-fund
+      - name: Build
+        working-directory: sdk
+        run: npm run build
+      - name: Smoke test
+        working-directory: sdk
+        run: node -e "import('./dist/index.js').then(m => { if (!m.createElyport || !m.ELYPORT_ADDRESSES.locker) process.exit(1); console.log('ok', Object.keys(m).length, 'exports') })"

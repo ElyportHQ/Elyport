@@ -98,12 +98,21 @@ Built on OpenZeppelin v5 (`Ownable2Step`, `ReentrancyGuard`, `Pausable`, `SafeER
 | Vesting | about $10 in HYPE per create |
 | Gas Drop | about $3 in HYPE per batch |
 
+## Build on Elyport
+
+| | |
+| --- | --- |
+| **Widgets** | Claim and live lock widgets for any site: `<div data-elyport="claim" data-token="0x…">` + [`embed.js`](https://elyport.com/docs/widgets) |
+| **Public API** | Read-only JSON at [`/api/v1`](https://elyport.com/api/v1): token, lock, vesting, wallet, stats. No key, open CORS |
+| **SDK** | [`sdk/`](sdk): locks, tranches, vesting, drops and an API client on viem |
+
 ## Repository
 
 ```
 contracts/   Foundry project: src, tests, deploy scripts
-web/         Next.js app: home, tool consoles, public lock, vesting and token pages, docs, refuel relayer
-.github/     CI for contracts and web
+web/         Next.js app: home, tool consoles, public pages, docs, widgets, public API, refuel relayer
+sdk/         @elyport/sdk: TypeScript SDK on viem
+.github/     CI for contracts, web and SDK
 ```
 
 ## Run it locally
@@ -160,6 +169,7 @@ and protected by `CRON_SECRET`. The relayer wallet needs HYPE on Elysium and nat
 - **App and tooling** (`web/`, workflows, docs): [Business Source License 1.1](LICENSE). Free to read, audit, run and test;
   running a competing hosted service is not allowed. Converts to GPL-2.0-or-later on 2030-11-10.
 - **Smart contracts** (`contracts/`): [MIT](contracts/LICENSE), the same source that is verified on-chain.
+- **SDK** (`sdk/`): [MIT](sdk/LICENSE).
 
 ## Principles
 

@@ -43,6 +43,8 @@ export function TopBar() {
   const { open: openWallet } = useAppKit();
   const isHome = pathname === "/";
 
+  if (pathname.startsWith("/embed")) return null;
+
   return (
     <header className="topbar">
       <div className="topbar-inner">

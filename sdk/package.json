@@ -1,0 +1,34 @@
+{
+  "name": "@elyport/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Elyport on Elysium: locks, tranche locks, vesting, gas drops and the public API.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["elysium", "hyperliquid", "hype", "token-lock", "liquidity-lock", "vesting", "airdrop", "multisend", "viem"],
+  "homepage": "https://elyport.com/docs/sdk",
+  "repository": { "type": "git", "url": "git+https://github.com/ElyportHQ/Elyport.git", "directory": "sdk" },
+  "bugs": "https://github.com/ElyportHQ/Elyport/issues",
+  "peerDependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "viem": "^2.23.0"
+  },
+  "engines": { "node": ">=18" }
+}

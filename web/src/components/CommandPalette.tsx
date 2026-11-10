@@ -23,6 +23,9 @@ const base: Item[] = [
   { label: "Docs · Contracts", hint: "Addresses", href: "/docs/contracts", icon: <IconSearch />, keywords: "docs contracts address verified source github" },
   { label: "Docs · Lock badge", hint: "Embed", href: "/docs/badge", icon: <IconSearch />, keywords: "docs badge embed website" },
   { label: "Docs · FAQ", hint: "Quick answers", href: "/docs/faq", icon: <IconSearch />, keywords: "docs faq questions help" },
+  { label: "Docs · Widgets", hint: "Embed on your site", href: "/docs/widgets", icon: <IconSearch />, keywords: "docs widget embed iframe claim website" },
+  { label: "Docs · Public API", hint: "JSON", href: "/docs/api", icon: <IconSearch />, keywords: "docs api json endpoint developer integration" },
+  { label: "Docs · SDK", hint: "TypeScript", href: "/docs/sdk", icon: <IconSearch />, keywords: "docs sdk npm typescript viem developer" },
   { label: "My Elyport", hint: "Your locks, vesting, drops", href: "/me", icon: <IconBars />, keywords: "me my dashboard claim withdraw portfolio" },
 ];
 

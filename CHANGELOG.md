@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### New
+- **Manage from the page**: lock owners can extend, top up, transfer and withdraw from the lock page; vesting creators
+  can cancel cancellable schedules and recipients can move a schedule to a new wallet.
+- **Widgets**: a claim widget and a live lock widget for any website, via `embed.js` or a plain iframe, with light and
+  dark themes and a custom accent color. Only `/embed/*` can be framed.
+- **Public API** at `/api/v1`: token, lock, vesting, wallet and stats endpoints. Read-only, no key, open CORS.
+- **SDK** in `sdk/` (`@elyport/sdk`): locks, tranche locks, vesting, gas drops and an API client, built on viem.
+
 ## v1.2.0 — Claim pages, tranche locks and holder discounts (2026-11-10)
 
 ### New

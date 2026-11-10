@@ -218,6 +218,7 @@ function BadgeEmbed({ token }: { token: Address }) {
   const img = `${siteUrl}/badge/${token}`;
   const html = `<a href="${page}"><img src="${img}" alt="Locked on Elyport" height="36"></a>`;
   const md = `[![Locked on Elyport](${img})](${page})`;
+  const widget = `<div data-elyport="lock" data-token="${token}"></div>\n<script src="${siteUrl}/embed.js" async></script>`;
   const copy = (t: string) => navigator.clipboard?.writeText(t).catch(() => undefined);
   return (
     <section className="panel embed">
@@ -241,7 +242,14 @@ function BadgeEmbed({ token }: { token: Address }) {
         <button type="button" className="btn btn-ghost" onClick={() => copy(page)}>
           Copy page link
         </button>
+        <button type="button" className="btn btn-ghost" onClick={() => copy(widget)}>
+          Copy lock widget
+        </button>
       </div>
+      <p className="muted" style={{ margin: 0, fontSize: 14 }}>
+        Want a live widget or a claim box on your site? See <Link href="/docs/widgets">Widgets</Link> and the{" "}
+        <Link href="/docs/api">public API</Link>.
+      </p>
     </section>
   );
 }

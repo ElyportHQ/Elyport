@@ -1,4 +1,4 @@
-export type DocIcon = "spark" | "plug" | "fuel" | "drop" | "send" | "lock" | "bars" | "search" | "ticket" | "user" | "badge" | "coin" | "code" | "shield" | "help" | "doc";
+export type DocIcon = "spark" | "plug" | "fuel" | "drop" | "send" | "lock" | "bars" | "search" | "ticket" | "user" | "badge" | "coin" | "code" | "shield" | "help" | "doc" | "embed" | "api" | "package";
 
 export type DocLink = { href: string; title: string; blurb: string; icon: DocIcon };
 export type DocGroup = { id: string; n: string; title: string; pages: DocLink[] };
@@ -41,8 +41,18 @@ export const docGroups: DocGroup[] = [
     ],
   },
   {
-    id: "reference",
+    id: "build",
     n: "04",
+    title: "Build with Elyport",
+    pages: [
+      { href: "/docs/widgets", title: "Widgets", blurb: "Claim and lock widgets for any site", icon: "embed" },
+      { href: "/docs/api", title: "Public API", blurb: "Read locks and vesting as JSON", icon: "api" },
+      { href: "/docs/sdk", title: "SDK", blurb: "Lock, vest and drop from your app", icon: "package" },
+    ],
+  },
+  {
+    id: "reference",
+    n: "05",
     title: "Reference",
     pages: [
       { href: "/docs/fees", title: "Fees & limits", blurb: "Every number in one table", icon: "coin" },
@@ -53,7 +63,7 @@ export const docGroups: DocGroup[] = [
   },
   {
     id: "legal",
-    n: "05",
+    n: "06",
     title: "Legal",
     pages: [
       { href: "/terms", title: "Terms", blurb: "Using Elyport", icon: "doc" },

@@ -9,7 +9,7 @@ Parameters
 
 Licensor:             Elyport
 
-Licensed Work:        Elyport (this repository, except the contracts/ folder)
+Licensed Work:        Elyport (this repository, except the contracts/ and sdk/ folders)
                       The Licensed Work is (c) 2026 Elyport
 
 Additional Use Grant: You may read, audit, run and test the Licensed Work,
@@ -21,7 +21,8 @@ Change Date:          2030-11-10
 Change License:       GNU General Public License v2.0 or later
 
 The contracts/ folder is licensed separately under the MIT License
-(see contracts/LICENSE), matching the source verified on-chain.
+(see contracts/LICENSE), matching the source verified on-chain. The sdk/
+folder is also licensed under the MIT License (see sdk/LICENSE).
 
 -----------------------------------------------------------------------------
 

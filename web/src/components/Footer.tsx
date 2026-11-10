@@ -13,7 +13,7 @@ export function LiveBlock() {
 /** Home uses the large glass footer inside its closing scene; app pages use this slim one. */
 export function SiteFooter() {
   const pathname = usePathname();
-  if (pathname === "/") return null;
+  if (pathname === "/" || pathname.startsWith("/embed")) return null;
   return (
     <footer className="simple-footer">
       <div className="container">
@@ -63,6 +63,7 @@ export function HomeFooter() {
             <Link href="/me">My Elyport</Link>
             <Link href="/docs">Docs</Link>
             <Link href="/docs/contracts">Contracts</Link>
+            <Link href="/docs/widgets">Widgets &amp; API</Link>
           </div>
           <div>
             <span className="eyebrow">Elyport</span>

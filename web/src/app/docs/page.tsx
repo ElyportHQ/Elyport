@@ -11,7 +11,7 @@ export default function DocsHome() {
   return (
     <DocPage
       href="/docs"
-      minutes={3}
+      minutes={4}
       lead="Elyport is the gas and builder toolkit for Elysium. Get HYPE for gas from the chain you already use, send tokens to hundreds of wallets, lock liquidity and run vesting, all from one place."
     >
       <H2 id="why">Why Elyport exists</H2>
@@ -60,6 +60,16 @@ export default function DocsHome() {
           <strong>Lock badges</strong> put a live &ldquo;liquidity locked&rdquo; badge on your website.
         </li>
       </ul>
+
+      <H2 id="build">Build on Elyport</H2>
+      <p>Projects and developers can bring Elyport into their own products.</p>
+      <Cards
+        items={[
+          { href: "/docs/widgets", title: "Widgets", blurb: "Claim and lock widgets for any website, two lines of HTML.", icon: "embed" },
+          { href: "/docs/api", title: "Public API", blurb: "Locks and vesting as JSON. Free, no key.", icon: "api" },
+          { href: "/docs/sdk", title: "SDK", blurb: "Lock, vest and drop from your own app.", icon: "package" },
+        ]}
+      />
 
       <Callout kind="tip" title="New to Elysium?">
         Start with <a href="/docs/connect">Connect to Elysium</a>, then <a href="/docs/getting-hype">Get HYPE for gas</a>. Two

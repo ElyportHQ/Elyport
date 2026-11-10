@@ -1,0 +1,32 @@
+name: Publish SDK
+
+# Manual: publishes sdk/ to npm as @elyport/sdk. Needs the repository secret NPM_TOKEN
+# (an npm "Automation" token with publish rights to the @elyport scope).
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type PUBLISH to publish the version in sdk/package.json
+        required: true
+
+jobs:
+  publish:
+    if: github.event.inputs.confirm == 'PUBLISH'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: sdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
