@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- **New share card for token pages** and a **Share to X** button there: share of supply locked, next unlock,
+  and where the liquidity sits (verified LP lock, or sealed in a Montra pool).
 - **New share card for locks:** the X preview of `/lock/{id}` now shows the ticker, unlock date, amount, share of
   supply and time left, with a lock ring. The Share to X text now includes the share of supply.
 - **Recently locked** on the home page: the newest active locks, one card per token, with amount, share of supply and
@@ -19,6 +21,9 @@
 
 - Token pages and `/api/v1/token` recognise Montra launches (checked against the launch receipt) and show their launch
   liquidity as sealed in the Montra pool instead of "No LP locked".
+
+### Fixed
+- The token share card no longer says "Liquidity locked" when only tokens (not LP) are locked.
 
 ### Security
 - **48-hour timelock** (`ElyportTimelock`, `0x51aed68990a24D6e2712d98e7837F3d89269D06e`) becomes owner of the Locker,

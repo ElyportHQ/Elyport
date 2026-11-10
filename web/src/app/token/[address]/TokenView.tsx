@@ -147,7 +147,16 @@ export function TokenView({ token, montra }: { token: Address; montra?: { launch
         )}
       </section>
 
-      {mounted && lockList.length > 0 && <BadgeEmbed token={token} />}
+      {mounted && lockList.length > 0 && (
+        <BadgeEmbed
+          token={token}
+          tweet={
+            ownLocks.length > 0 && supply
+              ? `🔒 ${pct(lockedTotal)} of ${symbol ? `$${symbol}` : "the"} supply is locked on @ElyportHQ${upcoming[0] ? `, next unlock ${fmtDate(upcoming[0].l.unlockAt)}` : ""}. Check it yourself:`
+              : `🔒 ${symbol ? `$${symbol}` : "This token"} has locks on @ElyportHQ. Check it yourself:`
+          }
+        />
+      )}
 
       <section>
         <h2 style={{ fontWeight: 500, fontSize: 24 }}>Locks</h2>
@@ -235,7 +244,7 @@ export function TokenView({ token, montra }: { token: Address; montra?: { launch
 }
 
 /** Copy-paste badge for project sites, docs and READMEs. */
-function BadgeEmbed({ token }: { token: Address }) {
+function BadgeEmbed({ token, tweet }: { token: Address; tweet: string }) {
   const page = `${siteUrl}/token/${token}`;
   const img = `${siteUrl}/badge/${token}`;
   const html = `<a href="${page}"><img src="${img}" alt="Locked on Elyport" height="36"></a>`;
@@ -255,6 +264,14 @@ function BadgeEmbed({ token }: { token: Address }) {
       <p className="note" style={{ margin: 0 }}>It updates on its own as locks change. For X and Telegram, share the page link: it unfurls into a card.</p>
       <pre>{html}</pre>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <a
+          className="btn btn-dark"
+          href={`https://x.com/intent/post?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(page)}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Share to X
+        </a>
         <button type="button" className="btn btn-ghost" onClick={() => copy(html)}>
           Copy HTML
         </button>

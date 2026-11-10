@@ -17,7 +17,7 @@ function leftText(unlockAt: number, now: number) {
 }
 
 /** Ring with a padlock inside. The arc is the share of lock time still ahead (0..1). */
-function Ring({ ahead, open }: { ahead: number; open: boolean }) {
+export function Ring({ ahead, open }: { ahead: number; open: boolean }) {
   const r = 128;
   const c = 2 * Math.PI * r;
   const shown = open ? 0 : Math.max(0.03, Math.min(1, ahead));
@@ -112,7 +112,7 @@ function Ring({ ahead, open }: { ahead: number; open: boolean }) {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+export function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div
       style={{
