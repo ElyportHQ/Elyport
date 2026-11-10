@@ -55,12 +55,13 @@ export default function VestingDoc() {
       <p>
         Recipients claim on the schedule page, on the token&apos;s <a href="/docs/claim-pages">claim page</a> or in{" "}
         <a href="/docs/my-elyport">My Elyport</a>. Anyone can trigger a claim, but tokens always go to the recipient. A recipient
-        can also move their schedule to a new wallet from the Vesting contract.
+        can also move their schedule to a new wallet from the schedule page.
       </p>
 
       <H2 id="cancel">Cancellable schedules</H2>
       <p>
-        If you mark a schedule as cancellable, you can stop it later. What has already vested stays with the recipient and can
+        If you mark a schedule as cancellable, you can stop it later from the schedule page: it shows exactly what stays
+        with the recipient and what comes back before you confirm. What has already vested stays with the recipient and can
         still be claimed; the rest returns to you. Holders see on every page whether a schedule is cancellable.
       </p>
       <Callout kind="tip">

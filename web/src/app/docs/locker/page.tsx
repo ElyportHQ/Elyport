@@ -59,8 +59,9 @@ export default function LockerDoc() {
         ]}
       />
       <p>
-        Withdraw is in the app under <strong>My locks</strong> and in <a href="/docs/my-elyport">My Elyport</a>. Extend, top up
-        and transfer can be called from the Locker contract&apos;s Write tab on the explorer.
+        Open your lock&apos;s page with the owner wallet connected and a <strong>Manage your lock</strong> panel appears with
+        Extend, Top up and Transfer, plus Withdraw once the date has passed. Withdraw is also in <strong>My locks</strong> and in{" "}
+        <a href="/docs/my-elyport">My Elyport</a>.
       </p>
 
       <H2 id="public">Public lock pages</H2>

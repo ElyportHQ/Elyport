@@ -2,17 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useReadContract, useReadContracts } from "wagmi";
+import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { erc20Abi } from "viem";
 import { contracts, elysium, explorerAddress, siteUrl } from "@/lib/config";
 import { lockerAbi } from "@/lib/abis";
 import { countdown, fmtAmount, fmtDate, short } from "@/lib/format";
 import { LockRing } from "@/components/home/Scenes";
+import { LockManage } from "@/components/manage/LockManage";
+import { useMounted } from "@/lib/useMounted";
 
 const cid = elysium.id;
 
 export function LockView({ idStr }: { idStr: string }) {
   const id = BigInt(idStr);
+  const { address } = useAccount();
+  const mounted = useMounted();
   const [, tick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => tick((v) => v + 1), 30_000);
@@ -96,6 +100,10 @@ export function LockView({ idStr }: { idStr: string }) {
           date.
         </p>
       </section>
+
+      {mounted && !l.withdrawn && address?.toLowerCase() === l.owner.toLowerCase() && (
+        <LockManage id={id} lock={l} symbol={symbol} decimals={decimals} onDone={() => lock.refetch()} />
+      )}
     </div>
   );
 }

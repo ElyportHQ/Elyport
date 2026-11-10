@@ -300,7 +300,7 @@ function CreateLock() {
           <input className="input" maxLength={120} value={note} placeholder="e.g. Liquidity for launch" onChange={(e) => setNote(e.target.value)} />
         </label>
 
-        <p className="note">Extend or top up anytime. A lock can never be shortened.</p>
+        <p className="note">Extend, top up or transfer anytime from the lock&apos;s page. A lock can never be shortened.</p>
 
         <dl className="summary">
           <dt>Locking</dt>

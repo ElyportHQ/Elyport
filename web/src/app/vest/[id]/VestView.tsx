@@ -10,6 +10,7 @@ import { useChainTx } from "@/lib/useChainTx";
 import { useMounted } from "@/lib/useMounted";
 import { nextRelease } from "@/lib/vesting";
 import { icsHref } from "@/lib/ics";
+import { VestManage } from "@/components/manage/VestManage";
 
 const cid = elysium.id;
 
@@ -96,6 +97,19 @@ export function VestView({ idStr }: { idStr: string }) {
           <dd>{s.revocable ? (s.revoked ? "Cancelled" : "Yes") : "No"}</dd>
         </dl>
       </section>
+
+      {mounted && (
+        <VestManage
+          id={id}
+          s={s}
+          symbol={symbol}
+          decimals={decimals}
+          onDone={() => {
+            sched.refetch();
+            claimable.refetch();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -93,6 +93,26 @@ export const lockerAbi = [
   },
   {
     type: "function",
+    name: "topUp",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "id", type: "uint256" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "transferLockOwnership",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "id", type: "uint256" },
+      { name: "newOwner", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
     name: "withdraw",
     stateMutability: "nonpayable",
     inputs: [{ name: "id", type: "uint256" }],
@@ -131,6 +151,17 @@ const scheduleTuple = {
 } as const;
 
 export const vestingAbi = [
+  { type: "function", name: "revoke", stateMutability: "nonpayable", inputs: [{ name: "id", type: "uint256" }], outputs: [] },
+  {
+    type: "function",
+    name: "transferBeneficiary",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "id", type: "uint256" },
+      { name: "newBeneficiary", type: "address" },
+    ],
+    outputs: [],
+  },
   { type: "function", name: "vestingFee", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "vestingFeeFor", stateMutability: "view", inputs: [{ name: "user", type: "address" }], outputs: [{ type: "uint256" }] },
   { type: "function", name: "scheduleCount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
