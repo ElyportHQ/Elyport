@@ -104,7 +104,7 @@ Built on OpenZeppelin v5 (`Ownable2Step`, `ReentrancyGuard`, `Pausable`, `SafeER
 | --- | --- |
 | **Widgets** | Claim and live lock widgets for any site: `<div data-elyport="claim" data-token="0x…">` + [`embed.js`](https://elyport.com/docs/widgets) |
 | **Public API** | Read-only JSON at [`/api/v1`](https://elyport.com/api/v1): token, lock, vesting, wallet, stats. No key, open CORS |
-| **SDK** | [`sdk/`](sdk): locks, tranches, vesting, drops and an API client on viem |
+| **SDK** | [`@elyport/sdk`](https://www.npmjs.com/package/@elyport/sdk) on npm ([source](sdk)): locks, tranches, vesting, drops and an API client on viem |
 
 ## Repository
 

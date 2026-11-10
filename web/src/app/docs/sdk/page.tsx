@@ -13,13 +13,9 @@ export default function SdkDoc() {
       <CodeBlock label="npm" code="npm install @elyport/sdk viem" />
       <p>
         The source lives in the <a href={`${githubUrl}/tree/main/sdk`} target="_blank" rel="noreferrer">sdk folder on GitHub</a>.
+        Package page: <a href="https://www.npmjs.com/package/@elyport/sdk" target="_blank" rel="noreferrer">npmjs.com/package/@elyport/sdk</a>.
         It ships the Elysium chain, the contract addresses and the ABIs, so there is nothing to configure.
       </p>
-
-      <Callout kind="note" title="Rolling out">
-        The npm release of <code>@elyport/sdk</code> is being prepared. Until it is live, copy the <code>sdk/src</code> folder
-        from GitHub into your project; the API is the same.
-      </Callout>
 
       <H2 id="setup">Set up</H2>
       <CodeBlock
