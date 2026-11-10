@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import {Script, console2} from "forge-std/Script.sol";
 import {ElyportLocker} from "../src/ElyportLocker.sol";
 import {ElyportVesting} from "../src/ElyportVesting.sol";
+import {ElyportLPCheck} from "../src/ElyportLPCheck.sol";
 import {ElyportDrop} from "../src/ElyportDrop.sol";
 import {ElyportRefuelVault} from "../src/ElyportRefuelVault.sol";
 import {ElyportRefuelDeposit} from "../src/ElyportRefuelDeposit.sol";
@@ -78,5 +79,17 @@ contract DeployElysiumTools is Script {
         console2.log("NEXT_PUBLIC_LOCKER_ADDRESS=%s", address(locker));
         console2.log("NEXT_PUBLIC_VESTING_ADDRESS=%s", address(vesting));
         console2.log("NEXT_PUBLIC_DROP_ADDRESS=%s", address(drop));
+    }
+}
+
+/// @notice Deploys the read-only LP checker on Elysium for the live Locker.
+contract DeployLPCheck is Script {
+    function run() external {
+        vm.startBroadcast();
+        ElyportLPCheck c = new ElyportLPCheck(
+            vm.envAddress("OWNER"), vm.envAddress("LOCKER"), vm.envAddress("V2_FACTORY"), "Uniswap V2"
+        );
+        vm.stopBroadcast();
+        console2.log("NEXT_PUBLIC_LP_CHECK_ADDRESS=%s", address(c));
     }
 }

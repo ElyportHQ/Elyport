@@ -14,7 +14,7 @@ on:
         required: true
         default: all
         type: choice
-        options: [all, elysium, tools, sources, ethereum, base, arbitrum, robinhood, bsc, hyperevm]
+        options: [all, elysium, tools, lpcheck, sources, ethereum, base, arbitrum, robinhood, bsc, hyperevm]
       confirm:
         description: 'Type DEPLOY to confirm a mainnet deploy'
         required: true
@@ -51,7 +51,7 @@ jobs:
   elysium:
     name: Elysium (Locker, Vesting, Drop, Vault)
     needs: check
-    if: inputs.target == 'all' || inputs.target == 'elysium' || inputs.target == 'tools'
+    if: inputs.target == 'all' || inputs.target == 'elysium' || inputs.target == 'tools' || inputs.target == 'lpcheck'
     runs-on: ubuntu-latest
     environment: mainnet
     defaults:
@@ -67,6 +67,9 @@ jobs:
       VAULT_MAX_PER_TX_WEI: ${{ vars.VAULT_MAX_PER_TX_WEI || '160000000000000000' }} # 0.16 HYPE ≈ $12
       VAULT_MAX_PER_WALLET_DAY_WEI: ${{ vars.VAULT_MAX_PER_WALLET_DAY_WEI || '300000000000000000' }} # 0.3 HYPE ≈ $22
       VAULT_MAX_PER_DAY_WEI: ${{ vars.VAULT_MAX_PER_DAY_WEI || '1400000000000000000' }} # 1.4 HYPE ≈ $105
+      # LP checker: the live v3 Locker and the Uniswap V2 factory on Elysium.
+      LOCKER: "0x402073014Aac6a658c7eb23ED7F8c39C8D1ee72b"
+      V2_FACTORY: "0xBbBcC62853a5fA27b93d6Bab3E6F7ce841E25Df2"
     steps:
       - uses: actions/checkout@v6
       - uses: foundry-rs/foundry-toolchain@v1
@@ -84,6 +87,7 @@ jobs:
           if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then echo "::error::Secret DEPLOYER_PRIVATE_KEY is not set."; exit 1; fi
           SCRIPT=DeployElysium
           [ "$TARGET" = "tools" ] && SCRIPT=DeployElysiumTools
+          [ "$TARGET" = "lpcheck" ] && SCRIPT=DeployLPCheck
           forge script "script/Deploy.s.sol:$SCRIPT" \
             --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$DEPLOYER" \
             --broadcast --slow --gas-estimate-multiplier 200
@@ -96,7 +100,7 @@ jobs:
             echo "### Elysium"
             echo '```'
             jq -r '.transactions[] | select(.transactionType=="CREATE") |
-              "NEXT_PUBLIC_" + ({"ElyportLocker":"LOCKER","ElyportVesting":"VESTING","ElyportDrop":"DROP","ElyportRefuelVault":"REFUEL_VAULT"}[.contractName]) + "_ADDRESS=" + .contractAddress' "$f"
+              "NEXT_PUBLIC_" + ({"ElyportLocker":"LOCKER","ElyportVesting":"VESTING","ElyportDrop":"DROP","ElyportRefuelVault":"REFUEL_VAULT","ElyportLPCheck":"LP_CHECK"}[.contractName]) + "_ADDRESS=" + .contractAddress' "$f"
             b=$(jq -r '.receipts[0].blockNumber // empty' "$f")
             [ -n "$b" ] && echo "NEXT_PUBLIC_DEPLOY_BLOCK=$((b))"
             echo '```'
@@ -111,7 +115,7 @@ jobs:
   sources:
     name: Deposit on ${{ matrix.name }}
     needs: [check, elysium]
-    if: always() && needs.check.result == 'success' && inputs.target != 'elysium' && inputs.target != 'tools'
+    if: always() && needs.check.result == 'success' && inputs.target != 'elysium' && inputs.target != 'tools' && inputs.target != 'lpcheck'
     runs-on: ubuntu-latest
     environment: mainnet
     strategy:
