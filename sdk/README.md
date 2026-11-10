@@ -1,5 +1,7 @@
 # @elyport/sdk
 
+[![npm](https://img.shields.io/npm/v/@elyport/sdk?color=1b1f26)](https://www.npmjs.com/package/@elyport/sdk) ![license](https://img.shields.io/npm/l/@elyport/sdk?color=1b1f26) ![provenance](https://img.shields.io/badge/provenance-signed-2bb58a)
+
 TypeScript SDK for [Elyport](https://elyport.com) on Elysium, the Hyperliquid L2 by Kinetiq.
 Lock LP or tokens (one date or up to 20 tranches), create vesting for up to 100 wallets, send gas drops to up to
 500 wallets, and read everything through the public API. Built on [viem](https://viem.sh).
