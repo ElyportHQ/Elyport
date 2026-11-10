@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- **Instant Refuel is live**: the refuel vault is funded and deposits on Ethereum, Base, Arbitrum, Robinhood Chain,
+  BNB Chain and HyperEVM are delivered as HYPE on Elysium by the relayer, within the vault's fixed caps.
 - **Official $ELYPORT token, detected automatically**: once launched on Montra from the dev wallet, the contract address
   appears on the home page, `/docs/status` and `/api/v1/official`. Montra's API only suggests candidates; each one is
   verified on-chain (launch receipt from the dev wallet, TokenLaunched from Montra's factory, `creator()` and `symbol()`).
