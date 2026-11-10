@@ -60,6 +60,7 @@ export function HomeFooter() {
           <div>
             <span className="eyebrow">Explore</span>
             <Link href="/locks">All locks</Link>
+            <Link href="/me">My Elyport</Link>
             <Link href="/docs">Docs</Link>
             <Link href="/docs#contracts">Contracts</Link>
           </div>

@@ -3,20 +3,16 @@
 import { useReadContract, useReadContracts } from "wagmi";
 import { erc20Abi } from "viem";
 import { contracts, elysium } from "@/lib/config";
-import { lockerAbi, vaultAbi, vestingAbi } from "@/lib/abis";
-import { fmtAmount, fmtDate, short } from "@/lib/format";
+import { lockerAbi } from "@/lib/abis";
+import { fmtDate, short } from "@/lib/format";
 
 const cid = elysium.id;
 
 export function LiveStats() {
-  const locks = useReadContract({ chainId: cid, address: contracts.locker, abi: lockerAbi, functionName: "lockCount", query: { enabled: !!contracts.locker } });
-  const schedules = useReadContract({ chainId: cid, address: contracts.vesting, abi: vestingAbi, functionName: "scheduleCount", query: { enabled: !!contracts.vesting } });
-  const stock = useReadContract({ chainId: cid, address: contracts.refuelVault, abi: vaultAbi, functionName: "stock", query: { enabled: !!contracts.refuelVault } });
-
   const items = [
-    { label: "Locks created", value: locks.data !== undefined ? locks.data.toString() : "—" },
-    { label: "Vesting schedules", value: schedules.data !== undefined ? schedules.data.toString() : "—" },
-    { label: "Instant refuel stock", value: stock.data !== undefined ? `${fmtAmount(stock.data, 18, 2)} HYPE` : "—" },
+    { label: "Chains", value: "7", note: "pay from to refuel" },
+    { label: "Verified contracts", value: "10", note: "open source, on every chain" },
+    { label: "Wallets per drop", value: "500", note: "in one transaction" },
   ];
 
   return (
@@ -25,6 +21,7 @@ export function LiveStats() {
         <div key={i.label}>
           <div className="eyebrow">{i.label}</div>
           <div style={{ marginTop: 6, fontSize: 44, fontWeight: 300, letterSpacing: "-0.04em" }}>{i.value}</div>
+          <div style={{ marginTop: 2, fontSize: 14, color: "#5D6573" }}>{i.note}</div>
         </div>
       ))}
     </div>

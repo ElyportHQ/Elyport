@@ -155,6 +155,13 @@ export const vestingAbi = [
   },
   {
     type: "function",
+    name: "scheduleIdsByCreator",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256[]" }],
+  },
+  {
+    type: "function",
     name: "createSchedules",
     stateMutability: "payable",
     inputs: [
@@ -223,6 +230,16 @@ export const dropAbi = [
       { name: "amounts", type: "uint256[]" },
     ],
     outputs: [],
+  },
+  {
+    type: "event",
+    name: "Dropped",
+    inputs: [
+      { name: "sender", type: "address", indexed: true },
+      { name: "token", type: "address", indexed: true },
+      { name: "recipients", type: "uint256", indexed: false },
+      { name: "total", type: "uint256", indexed: false },
+    ],
   },
 ] as const;
 

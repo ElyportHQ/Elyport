@@ -19,6 +19,7 @@ const links = [
   { href: "/vest", label: "Vesting" },
   { href: "/locks", label: "Explore" },
   { href: "/docs", label: "Docs" },
+  { href: "/me", label: "My Elyport" },
 ];
 
 const tools = [
@@ -56,7 +57,7 @@ export function TopBar() {
             <IconSearch />
           </button>
           {isHome ? (
-            <Link href="/refuel" className="btn btn-dark">
+            <Link href="/drop" className="btn btn-dark">
               Launch app
             </Link>
           ) : (
@@ -99,6 +100,9 @@ export function TopBar() {
             </Link>
           ))}
           <div style={{ height: 1, margin: "8px 12px", background: "#e6e9ee" }} />
+          <Link href="/me" className="btn btn-ghost btn-block" style={{ margin: "0 4px 8px", width: "calc(100% - 8px)" }} onClick={() => setOpen(false)}>
+            My Elyport · locks, vesting, claims
+          </Link>
           <div className="grid2">
             <Link href="/locks" onClick={() => setOpen(false)}>
               Explore locks

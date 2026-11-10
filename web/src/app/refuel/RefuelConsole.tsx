@@ -156,7 +156,7 @@ export function RefuelConsole() {
       <div className="console">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
           <span className="console-title">New refuel</span>
-          <span className="pill pill-info">{chainId === "solana" || !instant ? "Route · via bridge" : "Instant · from Elyport stock"}</span>
+          <span className="pill pill-info">{chainId === "solana" ? "Route · via bridge" : !instant ? "Instant · opening soon" : "Instant · from Elyport stock"}</span>
         </div>
 
         <fieldset style={{ margin: 0, padding: 0, border: 0 }}>
@@ -328,7 +328,7 @@ function RouteSteps({ solana }: { solana: boolean }) {
       <p className="note">
         {solana
           ? "Solana goes through a bridge: first to HyperEVM, then into Elysium."
-          : "Instant refuel from this chain is not open yet. You can still get there through a bridge."}
+          : "Instant Refuel is opening soon. Until then, get HYPE on Elysium through a bridge in two steps."}
       </p>
       <ol className="steps" style={{ gridTemplateColumns: "1fr" }}>
         <li style={{ padding: "14px 0" }}>

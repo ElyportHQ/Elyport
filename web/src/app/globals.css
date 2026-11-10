@@ -338,3 +338,16 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+@media (max-width: 1180px) {
+  .nav-links { margin-left: 8px; }
+  .nav-links a { padding: 10px 9px; }
+}
+
+/* ---------------------------------------------------------------- token safety */
+.supply-bar { display: flex; height: 18px; border-radius: 999px; overflow: hidden; background: #E9ECF1; }
+.supply-bar > span { height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font-size: 15px; color: #3A414C; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: 0; }
+.embed { display: grid; gap: 10px; }
+.embed pre { margin: 0; padding: 12px 14px; border-radius: 12px; background: #F4F5F8; border: 1px solid #E3E7EC; font: 13px/1.5 var(--font-geist-mono), monospace; white-space: pre-wrap; word-break: break-all; }

@@ -14,6 +14,7 @@ const base: Item[] = [
   { label: "Vesting", hint: "Schedules", href: "/vest", icon: <IconBars />, keywords: "vest vesting cliff claim" },
   { label: "Explore locks", hint: "All locks", href: "/locks", icon: <IconSearch />, keywords: "explore locks search" },
   { label: "Docs", hint: "How it works", href: "/docs", icon: <IconSearch />, keywords: "docs help fees contracts" },
+  { label: "My Elyport", hint: "Your locks, vesting, drops", href: "/me", icon: <IconBars />, keywords: "me my dashboard claim withdraw portfolio" },
 ];
 
 /** ⌘K / Ctrl+K palette: jump to a tool, or paste a token address or a lock/vesting number. */

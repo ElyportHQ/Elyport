@@ -33,7 +33,7 @@ export default function Home() {
             <br />
             into Elysium
           </h1>
-          <Link href="/refuel" className="btn btn-dark btn-lg">
+          <Link href="/drop" className="btn btn-dark btn-lg">
             Launch app
           </Link>
           <Link href="/refuel" className="text-link">
@@ -196,7 +196,7 @@ export default function Home() {
 
       <section className="white-band" style={{ overflow: "hidden" }}>
         <div className="container" style={{ paddingTop: 64, paddingBottom: 40 }}>
-          <span className="eyebrow">Live on Elyport</span>
+          <span className="eyebrow">Elyport at a glance</span>
           <LiveStats />
         </div>
         <ActivityTicker />
