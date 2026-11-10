@@ -26,7 +26,7 @@ jobs:
     env:
       VERIFIER_URL: https://elysium.kinetiq.xyz/explorer/api/
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: foundry-rs/foundry-toolchain@v1
       - name: Install libraries
         run: |
@@ -67,7 +67,7 @@ jobs:
       run:
         working-directory: contracts
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: foundry-rs/foundry-toolchain@v1
       - name: Install libraries
         run: |

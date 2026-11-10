@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.3.0 — Widgets, public API and SDK (2026-11-10)
 
 ### New
 - **Manage from the page**: lock owners can extend, top up, transfer and withdraw from the lock page; vesting creators
@@ -8,7 +8,11 @@
 - **Widgets**: a claim widget and a live lock widget for any website, via `embed.js` or a plain iframe, with light and
   dark themes and a custom accent color. Only `/embed/*` can be framed.
 - **Public API** at `/api/v1`: token, lock, vesting, wallet and stats endpoints. Read-only, no key, open CORS.
-- **SDK** in `sdk/` (`@elyport/sdk`): locks, tranche locks, vesting, gas drops and an API client, built on viem.
+- **SDK** [`@elyport/sdk`](https://www.npmjs.com/package/@elyport/sdk) on npm: locks, tranche locks, vesting, gas drops
+  and an API client, built on viem. Published from GitHub Actions through npm trusted publishing, with provenance.
+
+### Maintenance
+- GitHub Actions moved to Node 24 based versions (checkout, setup-node, upload-artifact v6).
 
 ## v1.2.0 — Claim pages, tranche locks and holder discounts (2026-11-10)
 

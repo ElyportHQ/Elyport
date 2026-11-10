@@ -68,7 +68,7 @@ jobs:
       VAULT_MAX_PER_WALLET_DAY_WEI: ${{ vars.VAULT_MAX_PER_WALLET_DAY_WEI || '300000000000000000' }} # 0.3 HYPE ≈ $22
       VAULT_MAX_PER_DAY_WEI: ${{ vars.VAULT_MAX_PER_DAY_WEI || '1400000000000000000' }} # 1.4 HYPE ≈ $105
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: foundry-rs/foundry-toolchain@v1
       - name: Install libraries
         run: |
@@ -101,7 +101,7 @@ jobs:
             [ -n "$b" ] && echo "NEXT_PUBLIC_DEPLOY_BLOCK=$((b))"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: broadcast-elysium
@@ -184,7 +184,7 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "Skipping ${KEY}."
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: steps.decide.outputs.run == 'true'
       - uses: foundry-rs/foundry-toolchain@v1
         if: steps.decide.outputs.run == 'true'
@@ -225,7 +225,7 @@ jobs:
             echo "NEXT_PUBLIC_REFUEL_DEPOSIT_${CHAIN_ID}=${addr}"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always() && steps.decide.outputs.run == 'true'
         with:
           name: broadcast-${{ matrix.key }}
