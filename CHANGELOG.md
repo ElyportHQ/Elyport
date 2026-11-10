@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- **Recently locked** on the home page: the newest active locks, one card per token, with amount, share of supply and
+  next unlock. Read on the server and refreshed every minute.
 - **Refuel widget** for other dapps: `data-elyport="refuel-button"` (a "Need gas?" button that opens Refuel in a popup)
   or `data-elyport="refuel"` (inline form), with an optional `data-to` recipient. Page: `/embed/refuel?to=0x…`.
 - **Gas Drop: import token holders.** Load any Elysium token's holders straight from its Transfer logs, skip contracts,

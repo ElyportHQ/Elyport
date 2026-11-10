@@ -4,6 +4,7 @@ import { ActivityTicker, LiveStats } from "@/components/home/LiveStats";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HomeFooter } from "@/components/Footer";
 import { OfficialToken } from "@/components/OfficialToken";
+import { RecentLocks } from "@/components/home/RecentLocks";
 
 export const revalidate = 60;
 
@@ -182,6 +183,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <RecentLocks />
 
       <section className="container" style={{ paddingTop: 0, paddingBottom: 110 }}>
         <h2 className="section-title" style={{ fontSize: 48, paddingBottom: 28, borderBottom: "1px solid #E1E5EB", margin: 0 }}>
