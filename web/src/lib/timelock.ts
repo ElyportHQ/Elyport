@@ -60,8 +60,13 @@ export function describeCall(target: Address, data: Hex): string {
         return `${where}: fee becomes ${formatEther(a[0] as bigint)} HYPE`;
       case "setFeeRecipient":
         return `${where}: fees go to ${a[0]}`;
-      case "setDiscount":
-        return `${where}: holder discount ${Number(a[2]) / 100}% for holders of ${a[1]} wei of ${a[0]}`;
+      case "setDiscount": {
+        const min = Number(formatEther(a[1] as bigint)).toLocaleString("en-US", { maximumFractionDigits: 4 });
+        const tok = String(a[0]);
+        return Number(a[2]) === 0 || /^0x0{40}$/i.test(tok)
+          ? `${where}: holder discount off`
+          : `${where}: ${Number(a[2]) / 100}% off for holders of ${min}+ tokens of ${tok.slice(0, 6)}…${tok.slice(-4)}`;
+      }
       case "setDex":
         return `${where}: ${a[2] ? "add" : "disable"} DEX "${a[1]}" (factory ${a[0]})`;
       case "transferOwnership":
