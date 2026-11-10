@@ -4,7 +4,7 @@ import { githubUrl, xUrl } from "@/lib/config";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 import { Emblem } from "./Emblem";
@@ -34,6 +34,11 @@ export function TopBar() {
   const [open, setOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   useCommandPaletteHotkey(setPaletteOpen);
+  useEffect(() => {
+    const open = () => setPaletteOpen(true);
+    window.addEventListener("elyport:search", open);
+    return () => window.removeEventListener("elyport:search", open);
+  }, []);
   const { address, isConnected } = useAccount();
   const { open: openWallet } = useAppKit();
   const isHome = pathname === "/";

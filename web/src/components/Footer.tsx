@@ -62,7 +62,7 @@ export function HomeFooter() {
             <Link href="/locks">All locks</Link>
             <Link href="/me">My Elyport</Link>
             <Link href="/docs">Docs</Link>
-            <Link href="/docs#contracts">Contracts</Link>
+            <Link href="/docs/contracts">Contracts</Link>
           </div>
           <div>
             <span className="eyebrow">Elyport</span>

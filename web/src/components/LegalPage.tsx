@@ -1,15 +1,13 @@
 import type { ReactNode } from "react";
+import { DocPage } from "./docs/DocPage";
+import { DocsShell } from "./docs/DocsShell";
 
-export function LegalPage({ title, updated, children }: { title: string; updated: string; children: ReactNode }) {
+export function LegalPage({ href, lead, updated, children }: { href: string; lead: ReactNode; updated: string; children: ReactNode }) {
   return (
-    <div className="container page">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow">Legal · Updated {updated}</div>
-          <h1>{title}</h1>
-        </div>
-      </div>
-      <article className="prose">{children}</article>
-    </div>
+    <DocsShell>
+      <DocPage href={href} lead={lead} minutes={2} updated={updated}>
+        {children}
+      </DocPage>
+    </DocsShell>
   );
 }

@@ -13,7 +13,16 @@ const base: Item[] = [
   { label: "Locker", hint: "Lock LP or tokens", href: "/lock", icon: <IconLock />, keywords: "lock locker lp liquidity" },
   { label: "Vesting", hint: "Schedules", href: "/vest", icon: <IconBars />, keywords: "vest vesting cliff claim" },
   { label: "Explore locks", hint: "All locks", href: "/locks", icon: <IconSearch />, keywords: "explore locks search" },
-  { label: "Docs", hint: "How it works", href: "/docs", icon: <IconSearch />, keywords: "docs help fees contracts" },
+  { label: "Docs", hint: "How it works", href: "/docs", icon: <IconSearch />, keywords: "docs help guide start" },
+  { label: "Docs · Connect to Elysium", hint: "Network details", href: "/docs/connect", icon: <IconSearch />, keywords: "docs connect network rpc chain id wallet metamask" },
+  { label: "Docs · Get HYPE for gas", hint: "First transaction", href: "/docs/getting-hype", icon: <IconSearch />, keywords: "docs gas hype bridge first" },
+  { label: "Docs · Locker", hint: "Locks and tranches", href: "/docs/locker", icon: <IconSearch />, keywords: "docs lock tranche lp extend withdraw" },
+  { label: "Docs · Vesting", hint: "Cliffs and schedules", href: "/docs/vesting", icon: <IconSearch />, keywords: "docs vesting cliff linear monthly cancel csv" },
+  { label: "Docs · Gas Drop", hint: "Multisend", href: "/docs/gas-drop", icon: <IconSearch />, keywords: "docs drop airdrop csv multisend" },
+  { label: "Docs · Fees & limits", hint: "Every number", href: "/docs/fees", icon: <IconSearch />, keywords: "docs fee fees limits discount price cost" },
+  { label: "Docs · Contracts", hint: "Addresses", href: "/docs/contracts", icon: <IconSearch />, keywords: "docs contracts address verified source github" },
+  { label: "Docs · Lock badge", hint: "Embed", href: "/docs/badge", icon: <IconSearch />, keywords: "docs badge embed website" },
+  { label: "Docs · FAQ", hint: "Quick answers", href: "/docs/faq", icon: <IconSearch />, keywords: "docs faq questions help" },
   { label: "My Elyport", hint: "Your locks, vesting, drops", href: "/me", icon: <IconBars />, keywords: "me my dashboard claim withdraw portfolio" },
 ];
 
@@ -45,7 +54,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
         { label: `Open vesting #${t}`, hint: "Vesting", href: `/vest/${t}`, icon: <IconBars />, keywords: "" },
       ];
     const lc = t.toLowerCase();
-    return lc ? base.filter((i) => `${i.label} ${i.keywords}`.toLowerCase().includes(lc)) : base;
+    return lc ? base.filter((i) => `${i.label} ${i.keywords}`.toLowerCase().includes(lc)) : base.filter((i) => !i.label.startsWith("Docs ·"));
   }, [q]);
 
   if (!open) return null;
