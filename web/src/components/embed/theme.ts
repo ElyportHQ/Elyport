@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 
 /** Widget theme from the query string: ?theme=dark&accent=4a56c2 */
 export function embedTheme(sp: Record<string, string | string[] | undefined>) {
-  const theme = sp.theme === "dark" ? "dark" : "light";
+  const theme: "light" | "dark" = sp.theme === "dark" ? "dark" : "light";
   const raw = typeof sp.accent === "string" ? sp.accent.replace(/^#/, "") : "";
   const accent = /^[0-9a-fA-F]{6}$/.test(raw) ? `#${raw}` : undefined;
   let accentInk: string | undefined;
