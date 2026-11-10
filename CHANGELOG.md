@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Security
+- **48-hour timelock** (`ElyportTimelock`, `0x51aed68990a24D6e2712d98e7837F3d89269D06e`) becomes owner of the Locker,
+  Vesting, Gas Drop and LP checker. Fee, fee recipient, discount and DEX list changes are public 48 hours ahead on
+  `/docs/status`. Owner console at `/admin`.
+- **Stand-alone refuel monitor** (`monitor/check-refuel.mjs`): public RPCs only, no secrets, no Elyport server; runs every
+  15 minutes in GitHub Actions and anyone can run it.
+- **Global rate limit** at the edge (Vercel Firewall): 60 requests/minute/IP on `/api/v1` and `/api/refuel/process`.
 - **Verified LP pairs**: LP locks count as locked liquidity only when the pair comes from a known DEX factory that
   confirms it (Uniswap V2 on Elysium; more via `NEXT_PUBLIC_DEX_FACTORIES`). Others show "Unverified pair" and are left
   out of the badge, widget and API liquidity figures.

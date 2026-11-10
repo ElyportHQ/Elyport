@@ -4,8 +4,9 @@ type Bucket = { tokens: number; at: number };
 const buckets = new Map<string, Bucket>();
 
 /**
- * Small token-bucket limiter per client IP and route. It runs per server instance, so it is a
- * first line of defence against floods rather than a global quota; CDN caching does the rest.
+ * Small token-bucket limiter per client IP and route. It runs per server instance. The global limit
+ * is a Vercel Firewall rule (60 requests / minute / IP on /api/v1 and /api/refuel/process, HTTP 429),
+ * applied at the edge before requests reach these functions; see SECURITY.md.
  */
 export function rateLimit(req: Request, route: string, perMinute: number): boolean {
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || req.headers.get("x-real-ip") || "unknown";

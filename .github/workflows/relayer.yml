@@ -4,8 +4,7 @@ name: Refuel relayer sweep
 # deposit, and Vercel Cron sweeps too; this runs every 5 minutes in case either is missed.
 # Needs the repository secret CRON_SECRET and the variable RELAYER_URL (e.g. https://elyport.com).
 #
-# The second job is an independent delivery check: it fails (and GitHub emails the repo owner)
-# if a deposit was marked delivered without a vault payout, or a vault payout matches no deposit.
+# Delivery is checked separately by refuel-monitor.yml, which uses no secrets and no Elyport server.
 
 on:
   schedule:
@@ -28,23 +27,3 @@ jobs:
           fi
           curl -sS --fail-with-body -m 90 -H "Authorization: Bearer $CRON_SECRET" "$RELAYER_URL/api/relayer"
 
-  monitor:
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - name: Check refuel deliveries
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          RELAYER_URL: ${{ vars.RELAYER_URL }}
-        run: |
-          URL="${RELAYER_URL:-https://elyport.com}/api/refuel/monitor?fresh=1"
-          BODY=$(curl -sS -m 90 -H "Authorization: Bearer ${CRON_SECRET}" "$URL" || true)
-          OK=$(echo "$BODY" | jq -r '.ok' 2>/dev/null || echo "")
-          echo "$BODY" | jq '{ok, problems, warnings, payouts: .payouts.count}' 2>/dev/null || echo "$BODY"
-          if [ "$OK" = "false" ]; then
-            echo "::error::Refuel delivery mismatch: $(echo "$BODY" | jq -r '.problems | join("; ")')"
-            exit 1
-          fi
-          if [ "$OK" != "true" ]; then
-            echo "::warning::Delivery check unavailable (RPC or app did not answer)."
-          fi

@@ -13,10 +13,11 @@ export default function ContractsDoc() {
     ["Gas Drop", contracts.drop, "Multisend"],
     ["Refuel vault", contracts.refuelVault, "HYPE stock for Instant Refuel"],
     ["LP checker", contracts.lpCheck, "Confirms LP pairs against known DEX factories"],
+    ["Timelock", contracts.timelock, "48-hour delay on every owner change to the tools"],
   ] as const;
 
   return (
-    <DocPage href="/docs/contracts" minutes={2} lead="Eleven v3 contracts, all open source and verified on their explorers. Always check you are interacting with these addresses.">
+    <DocPage href="/docs/contracts" minutes={2} lead="Twelve v3 contracts, all open source and verified on their explorers. Always check you are interacting with these addresses.">
       <H2 id="elysium">On Elysium</H2>
       <SpecTable
         head={["Contract", "Address", "Role"]}
@@ -34,7 +35,8 @@ export default function ContractsDoc() {
       <SpecTable
         head={["Role", "Address", "Can"]}
         rows={[
-          ["Owner", <Addr key="o" a={roles.owner} href={explorerAddress(roles.owner)} />, "Set fees and limits, pause Refuel, set the relayer"],
+          ["Timelock", <Addr key="tl" a={contracts.timelock!} href={explorerAddress(contracts.timelock!)} />, "Owns Locker, Vesting, Gas Drop and LP checker: fees, fee recipient, discount and DEX list, 48 hours after scheduling"],
+          ["Owner", <Addr key="o" a={roles.owner} href={explorerAddress(roles.owner)} />, "Schedules timelock changes; pauses Refuel and sets its limits and relayer"],
           ["Treasury", <Addr key="t" a={roles.treasury} href={explorerAddress(roles.treasury)} />, "Receives fees"],
         ]}
       />

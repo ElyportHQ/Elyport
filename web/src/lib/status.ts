@@ -1,9 +1,10 @@
 import "server-only";
-import { formatEther, type Address } from "viem";
+import { formatEther, keccak256, toHex, type Address } from "viem";
 import { elysiumPublic, MULTICALL3, sourcePublic } from "./chainClients";
 import { contracts, explorerAddress, sourceChains } from "./config";
 import { depositContracts, retiredContracts, roles } from "./docs";
 import { statusAbi } from "./statusAbi";
+import { readOperations, type Operation } from "./timelock";
 
 export type Row = { label: string; value: string; ok?: boolean };
 export type ContractCard = { name: string; tag?: string; chain: string; address: Address; href: string; rows: Row[]; ok?: boolean; error?: string };
@@ -51,6 +52,14 @@ const roleRow = (label: string, v: unknown, expect: string, name: string): Row =
   value: v === undefined ? "—" : same(v, expect) ? `${name} ${short(v)}` : `Unexpected ${short(v)}`,
   ok: v === undefined ? undefined : same(v, expect),
 });
+/** Owner of a timelocked contract: the timelock is the goal; the owner wallet is shown as "no delay". */
+const ownerRow = (v: unknown, pending: unknown, timelock: Address): Row => {
+  if (v === undefined) return { label: "Owner", value: "—" };
+  if (same(v, timelock)) return { label: "Owner", value: `48h timelock ${short(v)}`, ok: true };
+  if (same(v, roles.owner))
+    return { label: "Owner", value: same(pending, timelock) ? "Owner wallet → timelock (pending)" : `Owner wallet ${short(v)}, no delay` };
+  return { label: "Owner", value: `Unexpected ${short(v)}`, ok: false };
+};
 const feeRow = (label: string, fee: unknown, cap: unknown): Row => ({
   label,
   value: `${hype(fee)} (hard cap ${hype(cap)})`,
@@ -69,6 +78,8 @@ async function currentElysium(): Promise<ContractCard[]> {
   const D = (contracts.drop ?? V3.drop) as Address;
   const R = (contracts.refuelVault ?? V3.vault) as Address;
   const P = contracts.lpCheck as Address;
+  const T = contracts.timelock as Address;
+  const PROPOSER = keccak256(toHex("PROPOSER_ROLE"));
   const relayer = roles.relayer as Address;
   const calls: Call[] = [
     { address: L, fn: "owner" }, { address: L, fn: "feeRecipient" }, { address: L, fn: "lockFee" }, { address: L, fn: "MAX_LOCK_FEE" }, { address: L, fn: "lockCount" }, { address: L, fn: "discountBps" },
@@ -77,14 +88,16 @@ async function currentElysium(): Promise<ContractCard[]> {
     { address: R, fn: "owner" }, { address: R, fn: "paused" }, { address: R, fn: "isRelayer", args: [relayer] }, { balance: R },
     { address: R, fn: "maxPerTx" }, { address: R, fn: "CEILING_PER_TX" }, { address: R, fn: "maxPerWalletPerDay" }, { address: R, fn: "CEILING_PER_WALLET_PER_DAY" }, { address: R, fn: "maxPerDay" }, { address: R, fn: "CEILING_PER_DAY" },
     { address: P, fn: "owner" }, { address: P, fn: "locker" }, { address: P, fn: "factories" },
+    { address: L, fn: "pendingOwner" }, { address: Vs, fn: "pendingOwner" }, { address: D, fn: "pendingOwner" }, { address: P, fn: "pendingOwner" },
+    { address: T, fn: "getMinDelay" }, { address: T, fn: "hasRole", args: [PROPOSER, roles.owner] },
   ];
   const r = await readAll(elysiumPublic(), calls);
   const disc = (v: unknown): Row => ({ label: "Holder discount", value: typeof v === "number" || typeof v === "bigint" ? (Number(v) ? `${Number(v) / 100}%` : "Off") : "—" });
   const card = (name: string, address: Address, rows: Row[]) => finish({ name, tag: "v3", chain: "Elysium", address, href: explorerAddress(address), rows });
   return [
-    card("Locker", L, [roleRow("Owner", r[0], roles.owner, "Owner"), roleRow("Fees go to", r[1], roles.treasury, "Treasury"), feeRow("Lock fee", r[2], r[3]), disc(r[5]), { label: "Locks created", value: num(r[4]) }]),
-    card("Vesting", Vs, [roleRow("Owner", r[6], roles.owner, "Owner"), roleRow("Fees go to", r[7], roles.treasury, "Treasury"), feeRow("Vesting fee", r[8], r[9]), disc(r[11]), { label: "Schedules created", value: num(r[10]) }]),
-    card("Gas Drop", D, [roleRow("Owner", r[12], roles.owner, "Owner"), roleRow("Fees go to", r[13], roles.treasury, "Treasury"), feeRow("Drop fee", r[14], r[15]), disc(r[17]), { label: "Gas per native send", value: num(r[16]) }]),
+    card("Locker", L, [ownerRow(r[0], r[31], T), roleRow("Fees go to", r[1], roles.treasury, "Treasury"), feeRow("Lock fee", r[2], r[3]), disc(r[5]), { label: "Locks created", value: num(r[4]) }]),
+    card("Vesting", Vs, [ownerRow(r[6], r[32], T), roleRow("Fees go to", r[7], roles.treasury, "Treasury"), feeRow("Vesting fee", r[8], r[9]), disc(r[11]), { label: "Schedules created", value: num(r[10]) }]),
+    card("Gas Drop", D, [ownerRow(r[12], r[33], T), roleRow("Fees go to", r[13], roles.treasury, "Treasury"), feeRow("Drop fee", r[14], r[15]), disc(r[17]), { label: "Gas per native send", value: num(r[16]) }]),
     card("Refuel vault", R, [
       roleRow("Owner", r[18], roles.owner, "Owner"),
       { label: "Relayer allowed", value: r[20] === undefined ? "—" : r[20] ? `Yes ${short(relayer)}` : "No", ok: r[20] === undefined ? undefined : r[20] === true },
@@ -95,9 +108,14 @@ async function currentElysium(): Promise<ContractCard[]> {
       capRow("Max per day (all)", r[26], r[27]),
     ]),
     card("LP checker", P, [
-      roleRow("Owner", r[28], roles.owner, "Owner"),
+      ownerRow(r[28], r[34], T),
       { label: "Checks locks of", value: same(r[29], L) ? `Locker ${short(L)}` : `Unexpected ${short(r[29])}`, ok: r[29] === undefined ? undefined : same(r[29], L) },
       { label: "DEX factories", value: Array.isArray(r[30]) ? String(r[30].length) : "—" },
+    ]),
+    card("Timelock", T, [
+      { label: "Delay", value: typeof r[35] === "bigint" ? `${Number(r[35]) / 3600} hours` : "—", ok: typeof r[35] === "bigint" ? r[35] >= 172800n : undefined },
+      { label: "Can schedule", value: r[36] === undefined ? "—" : r[36] ? `Owner wallet ${short(roles.owner)}` : "Owner missing", ok: r[36] === undefined ? undefined : r[36] === true },
+      { label: "Can execute", value: "Anyone, after the delay" },
     ]),
   ];
 }
@@ -185,13 +203,14 @@ async function retired(): Promise<ContractCard[]> {
   return [...ely, ...deps];
 }
 
-export type StatusReport = { checkedAt: string; current: ContractCard[]; deposits: ContractCard[]; retired: ContractCard[] };
+export type StatusReport = { checkedAt: string; current: ContractCard[]; deposits: ContractCard[]; retired: ContractCard[]; operations?: Operation[] };
 
 export async function getStatus(): Promise<StatusReport> {
-  const [current, deposits, old] = await Promise.all([
+  const [current, deposits, old, operations] = await Promise.all([
     currentElysium().catch((e) => [{ name: "Elysium contracts", chain: "Elysium", address: V3.locker as Address, href: "", rows: [], error: (e as Error).message?.slice(0, 120) }]),
     Promise.all(depositContracts.map((d) => depositCard(d.chainId, d.chain, d.address as Address, d.explorer + d.address))),
     retired(),
+    readOperations(elysiumPublic()).catch(() => undefined),
   ]);
-  return { checkedAt: new Date().toISOString(), current, deposits, retired: old };
+  return { checkedAt: new Date().toISOString(), current, deposits, retired: old, operations };
 }

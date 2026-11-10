@@ -48,7 +48,11 @@ export const contracts = {
   drop: asAddress(process.env.NEXT_PUBLIC_DROP_ADDRESS),
   refuelVault: asAddress(process.env.NEXT_PUBLIC_REFUEL_VAULT_ADDRESS),
   lpCheck: asAddress(process.env.NEXT_PUBLIC_LP_CHECK_ADDRESS) ?? ("0xB672a7D0d3CeA82525fB0a6128fE0a31d0858AC3" as Address),
+  timelock: asAddress(process.env.NEXT_PUBLIC_TIMELOCK_ADDRESS) ?? ("0x51aed68990a24D6e2712d98e7837F3d89269D06e" as Address),
 };
+
+/** Block the timelock was deployed in; scheduled changes are read from here on. */
+export const timelockBlock = BigInt(env(process.env.NEXT_PUBLIC_TIMELOCK_BLOCK, "3903382"));
 
 export const deployBlock = BigInt(env(process.env.NEXT_PUBLIC_DEPLOY_BLOCK, "0"));
 

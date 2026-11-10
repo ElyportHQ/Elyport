@@ -1,0 +1,9 @@
+{
+  "name": "elyport-refuel-monitor",
+  "private": true,
+  "type": "module",
+  "description": "Stand-alone check that every Elyport refuel marked delivered was paid, reading only public chain data.",
+  "scripts": { "check": "node check-refuel.mjs" },
+  "dependencies": { "viem": "^2.21.0" },
+  "license": "MIT"
+}

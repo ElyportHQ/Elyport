@@ -28,9 +28,16 @@ export default function SecurityDoc() {
         limits</a>), the holder discount and the relayer, and can pause Refuel. The owner cannot touch locked or vesting tokens,
         and cannot stop you from refunding a stuck refuel. See <a href="/docs/contracts">Contracts</a> for the addresses.
       </p>
+      <H2 id="timelock">48-hour timelock</H2>
+      <p>
+        Fee changes, the fee recipient, the holder discount and the LP checker&apos;s DEX list can only change through a public
+        timelock with a fixed 48-hour delay. Every scheduled change appears on <a href="/docs/status#timelock">Live status</a>{" "}
+        two days before it can take effect, so nobody can raise a fee or add a fake DEX overnight, and a leaked key gives time
+        to cancel. Refuel stays with the owner wallet so it can be paused at once; its limits are capped in the code.
+      </p>
       <Callout kind="note" title="Owner today">
-        The owner is currently a single wallet, kept separate from the deployer and the relayer. Moving it to a multisig is
-        planned; this page will say so when it happens.
+        The owner wallet is kept separate from the deployer and the relayer, and is the only wallet that can schedule changes
+        in the timelock. Making a multisig the proposer is planned.
       </Callout>
 
       <H2 id="lp">How LP locks are checked</H2>
@@ -67,11 +74,13 @@ export default function SecurityDoc() {
         <li>Caps per transaction, per wallet per day and per day limit what can leave, and the caps themselves have fixed ceilings.</li>
         <li>HYPE is sent only after the payment has block confirmations, keyed to the payment&apos;s full contents.</li>
         <li>Prices come from three sources; quotes stop if they disagree.</li>
+        <li>The public API is rate limited per IP at the network edge (60 requests per minute).</li>
         <li>Each payment can be delivered only once.</li>
         <li>Both the vault and the deposit contracts can be paused.</li>
         <li>
-          An independent check every 5 minutes confirms each delivered refuel was really paid by the vault and each vault payout
-          matches a real deposit. Its live result is on <a href="/docs/status">Live status</a>.
+          A stand-alone script, run every 15 minutes and runnable by anyone, confirms each delivered refuel was really paid by
+          the vault and each vault payout matches a real deposit. It uses only public chain data. See{" "}
+          <a href="/docs/status">Live status</a>.
         </li>
       </ul>
 
