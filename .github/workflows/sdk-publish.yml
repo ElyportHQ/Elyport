@@ -1,7 +1,8 @@
 name: Publish SDK
 
-# Manual: publishes sdk/ to npm as @elyport/sdk. Needs the repository secret NPM_TOKEN
-# (an npm "Automation" token with publish rights to the @elyport scope).
+# Manual: publishes sdk/ to npm as @elyport/sdk.
+# First release: uses the NPM_TOKEN secret (granular token, read and write on @elyport).
+# After that: npm Trusted Publishing (OIDC) for this workflow, so NPM_TOKEN can be deleted.
 on:
   workflow_dispatch:
     inputs:
@@ -23,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
       - run: npm install --no-audit --no-fund
       - run: npm run build
