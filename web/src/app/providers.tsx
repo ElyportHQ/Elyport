@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { WagmiProvider, type Config } from "wagmi";
+import { WagmiProvider, http, type Config } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { createAppKit } from "@reown/appkit/react";
@@ -32,7 +32,10 @@ const robinhoodNetwork = toAppKit(robinhoodChain);
 
 const networks: [AppKitNetwork, ...AppKitNetwork[]] = [elysiumNetwork, base, arbitrum, mainnet, robinhoodNetwork, bsc, hyperEvmNetwork];
 
-export const wagmiAdapter = new WagmiAdapter({ networks, projectId, ssr: true });
+// Elysium's public RPC rate limits bursts: batch reads into one request and retry 429s with backoff.
+const elysiumTransport = http(elysium.rpcUrls.default.http[0], { batch: { wait: 16 }, retryCount: 5, retryDelay: 500 });
+
+export const wagmiAdapter = new WagmiAdapter({ networks, projectId, ssr: true, transports: { [elysium.id]: elysiumTransport } });
 
 createAppKit({
   adapters: [wagmiAdapter],
