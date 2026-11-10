@@ -11,6 +11,8 @@
   discounted fee per wallet.
 - **Explore**: search by name, symbol or address; filters for LP, tokens, unlocking in 7 days and active locks;
   sort by newest or unlocking soon; LP pairs labelled by their tokens.
+- **New docs**: 15 pages in five groups with a sidebar, an on-this-page outline, a mobile reader with a contents
+  sheet and reading progress, and previous / next links. Terms, Privacy and Risks use the same layout.
 
 ### Contracts (v2, Elysium)
 | Contract | Address |
