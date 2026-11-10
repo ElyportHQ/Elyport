@@ -554,9 +554,9 @@ body:has(.ew-page) { background: transparent; }
 .st-title strong { font-size: 16px; color: var(--ink); }
 .st-tag { font-family: var(--font-mono); font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--pearl); color: var(--muted); }
 .st-dot { margin-left: auto; width: 9px; height: 9px; border-radius: 50%; flex: none; }
-.st-dot.ok { background: var(--mint); box-shadow: 0 0 0 3px #e3f6ee; }
-.st-dot.bad { background: #c43d6b; box-shadow: 0 0 0 3px #fbe9ef; }
-.st-dot.warn { background: #d99a3a; box-shadow: 0 0 0 3px #fbf1e2; }
+.st-dot.is-ok { background: var(--mint); box-shadow: 0 0 0 3px #e3f6ee; }
+.st-dot.is-bad { background: #c43d6b; box-shadow: 0 0 0 3px #fbe9ef; }
+.st-dot.is-warn { background: #d99a3a; box-shadow: 0 0 0 3px #fbf1e2; }
 .st-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
 .st-sub a { font-size: 12.5px; color: var(--indigo-ink); text-decoration: none; }
 .st-card dl { margin: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
@@ -564,13 +564,13 @@ body:has(.ew-page) { background: transparent; }
 .st-card dl > div:last-child { border-bottom: 0; padding-bottom: 0; }
 .st-card dt { color: var(--muted); flex: none; }
 .st-card dd { margin: 0; color: var(--ink); text-align: right; font-family: var(--font-mono); font-size: 12.5px; overflow-wrap: anywhere; }
-.st-card dl > div.bad dd { color: #9c2e57; }
+.st-card dl > div.is-bad dd { color: #9c2e57; }
 .st-tick { color: #1d7a5b; margin-right: 6px; }
 .st-cross { color: #9c2e57; margin-right: 6px; }
 .st-err { margin: 0; font-size: 14px; color: #8a5a12; }
 .st-banner { margin: 18px 0 8px; padding: 14px 16px; border-radius: 16px; border: 1px solid; display: grid; gap: 4px; font-size: 14.5px; }
 .st-banner strong { font-size: 16px; }
-.st-banner.ok { background: #edf8f3; border-color: #cdeee0; } .st-banner.ok strong { color: #1d7a5b; }
-.st-banner.bad { background: #fbe9ef; border-color: #f2cbd8; } .st-banner.bad strong { color: #9c2e57; }
-.st-banner.warn { background: #fdf4ec; border-color: #f2dcc6; } .st-banner.warn strong { color: #a8611f; }
+.st-banner.is-ok { background: #edf8f3; border-color: #cdeee0; } .st-banner.is-ok strong { color: #1d7a5b; }
+.st-banner.is-bad { background: #fbe9ef; border-color: #f2cbd8; } .st-banner.is-bad strong { color: #9c2e57; }
+.st-banner.is-warn { background: #fdf4ec; border-color: #f2dcc6; } .st-banner.is-warn strong { color: #a8611f; }
 .st-note { font-size: 13px; color: var(--body); }

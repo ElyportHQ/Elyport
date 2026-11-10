@@ -13,7 +13,7 @@ export function StatusCards({ cards, compact }: { cards: ContractCard[]; compact
               <div className="st-title">
                 <strong>{c.name}</strong>
                 {c.tag && <span className="st-tag">{c.tag}</span>}
-                <span className={`st-dot ${state}`} aria-label={state === "ok" ? "OK" : state === "bad" ? "Check failed" : "Unavailable"} />
+                <span className={`st-dot is-${state}`} aria-label={state === "ok" ? "OK" : state === "bad" ? "Check failed" : "Unavailable"} />
               </div>
               <div className="st-sub">
                 <span>{c.chain}</span>
@@ -27,7 +27,7 @@ export function StatusCards({ cards, compact }: { cards: ContractCard[]; compact
             ) : (
               <dl>
                 {c.rows.map((r) => (
-                  <div key={r.label} className={r.ok === false ? "bad" : undefined}>
+                  <div key={r.label} className={r.ok === false ? "is-bad" : undefined}>
                     <dt>{r.label}</dt>
                     <dd>
                       {r.ok === true && <span className="st-tick">✓</span>}

@@ -32,7 +32,7 @@ export default async function StatusDoc() {
         the vault, and that every vault payout matches a real deposit.
       </p>
       {monitor ? (
-        <div className={`st-banner ${monitor.ok ? "ok" : "bad"}`}>
+        <div className={`st-banner ${monitor.ok ? "is-ok" : "is-bad"}`}>
           <strong>{monitor.ok ? "All deliveries match" : "Mismatch found"}</strong>
           <span>
             {monitor.chains.reduce((n, c) => n + c.checked, 0)} recent deposits checked on {monitor.chains.length} chains ·{" "}
@@ -45,7 +45,7 @@ export default async function StatusDoc() {
           ))}
         </div>
       ) : (
-        <div className="st-banner warn">
+        <div className="st-banner is-warn">
           <strong>Check unavailable right now</strong>
           <span>The RPCs did not answer. Try again in a minute.</span>
         </div>
