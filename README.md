@@ -84,6 +84,7 @@ Instant refuels are capped per transaction, per wallet per day and per day. Larg
 | `ElyportVesting` | Elysium | [`0x33e318a397699A1d55b008089D0d4F11A959c855`](https://elysium.kinetiq.xyz/explorer/address/0x33e318a397699A1d55b008089D0d4F11A959c855) |
 | `ElyportDrop` | Elysium | [`0xF7633D1033020314BCb5AfDC7864b50f30B493D0`](https://elysium.kinetiq.xyz/explorer/address/0xF7633D1033020314BCb5AfDC7864b50f30B493D0) |
 | `ElyportRefuelVault` | Elysium | [`0x259EB6eD99225907cB839C73FD2556CF6cBd9456`](https://elysium.kinetiq.xyz/explorer/address/0x259EB6eD99225907cB839C73FD2556CF6cBd9456) |
+| `ElyportLPCheck` | Elysium | [`0xB672a7D0d3CeA82525fB0a6128fE0a31d0858AC3`](https://elysium.kinetiq.xyz/explorer/address/0xB672a7D0d3CeA82525fB0a6128fE0a31d0858AC3) |
 | `ElyportRefuelDeposit` | Ethereum, Base, Arbitrum, Robinhood Chain, BNB Chain | `0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4` |
 | `ElyportRefuelDeposit` | HyperEVM | `0xD5C3e28D683B948Ff8e96AD12f04986EaA13127A` |
 

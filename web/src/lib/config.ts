@@ -47,6 +47,7 @@ export const contracts = {
   vesting: asAddress(process.env.NEXT_PUBLIC_VESTING_ADDRESS),
   drop: asAddress(process.env.NEXT_PUBLIC_DROP_ADDRESS),
   refuelVault: asAddress(process.env.NEXT_PUBLIC_REFUEL_VAULT_ADDRESS),
+  lpCheck: asAddress(process.env.NEXT_PUBLIC_LP_CHECK_ADDRESS) ?? ("0xB672a7D0d3CeA82525fB0a6128fE0a31d0858AC3" as Address),
 };
 
 export const deployBlock = BigInt(env(process.env.NEXT_PUBLIC_DEPLOY_BLOCK, "0"));

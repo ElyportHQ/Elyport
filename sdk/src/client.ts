@@ -11,7 +11,7 @@ import {
   type TransactionReceipt,
   type WalletClient,
 } from "viem";
-import { dropAbi, lockerAbi, vestingAbi } from "./abis.js";
+import { dropAbi, lockerAbi, lpCheckAbi, vestingAbi } from "./abis.js";
 import { ELYPORT_ADDRESSES, MONTH, type ElyportAddresses } from "./addresses.js";
 import { elysium } from "./chain.js";
 
@@ -42,6 +42,7 @@ export type Schedule = {
 export type Recipient = { address: Address; amount: bigint };
 /** Unix seconds or a Date. */
 export type Time = number | bigint | Date;
+export type PairCheck = { verified: boolean; dex: string; factory?: Address };
 
 export type CreateLockParams = { token: Address; amount: bigint; unlockAt: Time; owner?: Address; isLP?: boolean; note?: string };
 export type CreateTranchesParams = { token: Address; tranches: { amount: bigint; unlockAt: Time }[]; owner?: Address; isLP?: boolean; note?: string };
@@ -93,6 +94,12 @@ export interface Elyport {
     cancel(id: bigint): Promise<Hash>;
     transfer(id: bigint, newRecipient: Address): Promise<Hash>;
     idsFromReceipt(receipt: TransactionReceipt): bigint[];
+  };
+  lp: {
+    /** Is this pair from a known DEX factory that confirms it? */
+    checkPair(pair: Address): Promise<PairCheck>;
+    /** Same check for an existing lock. `isLP` is false for plain token locks. */
+    checkLock(id: bigint): Promise<PairCheck & { isLP: boolean; pair: Address }>;
   };
   drop: {
     native(recipients: Recipient[]): Promise<Hash>;
@@ -325,6 +332,17 @@ export function createElyport(opts: ElyportOptions = {}): Elyport {
     },
   };
 
+  const lp = {
+    async checkPair(pair: Address): Promise<PairCheck> {
+      const [verified, dex, factory] = await pc.readContract({ address: addresses.lpCheck, abi: lpCheckAbi, functionName: "checkPair", args: [pair] });
+      return { verified, dex, factory };
+    },
+    async checkLock(id: bigint) {
+      const [isLP, verified, dex, pair] = await pc.readContract({ address: addresses.lpCheck, abi: lpCheckAbi, functionName: "checkLock", args: [id] });
+      return { isLP, verified, dex, pair };
+    },
+  };
+
   return {
     chain: elysium,
     addresses,
@@ -332,6 +350,7 @@ export function createElyport(opts: ElyportOptions = {}): Elyport {
     fees,
     locks,
     vesting,
+    lp,
     drop,
     /** Wait for a transaction and throw if it reverted. */
     async wait(hash: Hash) {

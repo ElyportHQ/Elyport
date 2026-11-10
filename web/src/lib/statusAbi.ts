@@ -25,6 +25,8 @@ export const statusAbi = [
   v("paused", "bool"),
   v("depositCount"),
   v("REFUND_DELAY"),
+  v("locker", "address"),
+  { type: "function", name: "factories", stateMutability: "view", inputs: [], outputs: [{ type: "address[]" }] },
   v1("isRelayer", "address", "bool"),
   v1("reserved", "address"),
   v1("processed", "bytes32", "bool"),

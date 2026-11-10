@@ -15,7 +15,8 @@
   and each vault payout matches a deposit (`/api/refuel/monitor`, GitHub Actions fails on a mismatch).
 - **Live status** page (`/docs/status`, `/status`): owner, fee recipient, fees vs hard caps, Refuel caps vs ceilings,
   deposit balances vs what they owe, and the retired v1/v2 contracts with on-chain proof they were never used.
-- **On-chain LP checker** (`ElyportLPCheck`): the same pair check as the app, callable by anyone from any contract.
+- **On-chain LP checker** (`ElyportLPCheck`, `0xB672a7D0d3CeA82525fB0a6128fE0a31d0858AC3`): the same pair check as the
+  app, callable by anyone (`checkLock(id)`, `checkPair(pair)`).
 
 ### Contracts v3 (deployed 2026-11-10)
 - Hard fee caps (Locker 1, Vesting 1, Drop 0.5 HYPE), vault cap ceilings (1 / 3 / 50 HYPE), sender self-refund after
@@ -31,6 +32,7 @@
 
 ### SDK
 - `@elyport/sdk` 0.2.0 points at the v3 contracts and the v3 deposit ABI.
+- `@elyport/sdk` 0.3.0 adds `ely.lp.checkPair()` / `ely.lp.checkLock()` and `lpCheckAbi`.
 
 ### Other
 - Terms list contact channels; docs cover the owner wallet, LP verification and known limits; footer shows the network

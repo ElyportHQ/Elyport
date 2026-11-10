@@ -54,6 +54,9 @@ const ely = createElyport(); // public Elysium RPC
 const ids = await ely.locks.idsByToken(token);
 const lock = await ely.locks.get(ids[0]);
 const claimable = await ely.vesting.claimable(7n);
+
+// Is this LP lock on a real DEX pair? (checked on-chain by ElyportLPCheck)
+const { isLP, verified, dex } = await ely.lp.checkLock(ids[0]);
 ```
 
 ## Read: public API

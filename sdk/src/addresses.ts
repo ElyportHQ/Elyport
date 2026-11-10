@@ -5,6 +5,7 @@ export type ElyportAddresses = {
   vesting: Address;
   drop: Address;
   refuelVault: Address;
+  lpCheck: Address;
 };
 
 /** Elyport v3 contracts on Elysium mainnet (chain 99901). */
@@ -13,6 +14,7 @@ export const ELYPORT_ADDRESSES: ElyportAddresses = {
   vesting: "0x33e318a397699A1d55b008089D0d4F11A959c855",
   drop: "0xF7633D1033020314BCb5AfDC7864b50f30B493D0",
   refuelVault: "0x259EB6eD99225907cB839C73FD2556CF6cBd9456",
+  lpCheck: "0xB672a7D0d3CeA82525fB0a6128fE0a31d0858AC3",
 };
 
 /** Instant Refuel deposit contracts on source chains, by chain id. */

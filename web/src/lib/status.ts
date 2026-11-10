@@ -68,6 +68,7 @@ async function currentElysium(): Promise<ContractCard[]> {
   const Vs = (contracts.vesting ?? V3.vesting) as Address;
   const D = (contracts.drop ?? V3.drop) as Address;
   const R = (contracts.refuelVault ?? V3.vault) as Address;
+  const P = contracts.lpCheck as Address;
   const relayer = roles.relayer as Address;
   const calls: Call[] = [
     { address: L, fn: "owner" }, { address: L, fn: "feeRecipient" }, { address: L, fn: "lockFee" }, { address: L, fn: "MAX_LOCK_FEE" }, { address: L, fn: "lockCount" }, { address: L, fn: "discountBps" },
@@ -75,6 +76,7 @@ async function currentElysium(): Promise<ContractCard[]> {
     { address: D, fn: "owner" }, { address: D, fn: "feeRecipient" }, { address: D, fn: "dropFee" }, { address: D, fn: "MAX_DROP_FEE" }, { address: D, fn: "NATIVE_SEND_GAS" }, { address: D, fn: "discountBps" },
     { address: R, fn: "owner" }, { address: R, fn: "paused" }, { address: R, fn: "isRelayer", args: [relayer] }, { balance: R },
     { address: R, fn: "maxPerTx" }, { address: R, fn: "CEILING_PER_TX" }, { address: R, fn: "maxPerWalletPerDay" }, { address: R, fn: "CEILING_PER_WALLET_PER_DAY" }, { address: R, fn: "maxPerDay" }, { address: R, fn: "CEILING_PER_DAY" },
+    { address: P, fn: "owner" }, { address: P, fn: "locker" }, { address: P, fn: "factories" },
   ];
   const r = await readAll(elysiumPublic(), calls);
   const disc = (v: unknown): Row => ({ label: "Holder discount", value: typeof v === "number" || typeof v === "bigint" ? (Number(v) ? `${Number(v) / 100}%` : "Off") : "—" });
@@ -91,6 +93,11 @@ async function currentElysium(): Promise<ContractCard[]> {
       capRow("Max per refuel", r[22], r[23]),
       capRow("Max per wallet / day", r[24], r[25]),
       capRow("Max per day (all)", r[26], r[27]),
+    ]),
+    card("LP checker", P, [
+      roleRow("Owner", r[28], roles.owner, "Owner"),
+      { label: "Checks locks of", value: same(r[29], L) ? `Locker ${short(L)}` : `Unexpected ${short(r[29])}`, ok: r[29] === undefined ? undefined : same(r[29], L) },
+      { label: "DEX factories", value: Array.isArray(r[30]) ? String(r[30].length) : "—" },
     ]),
   ];
 }

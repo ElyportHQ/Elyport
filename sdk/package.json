@@ -1,6 +1,6 @@
 {
   "name": "@elyport/sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "TypeScript SDK for Elyport on Elysium: locks, tranche locks, vesting, gas drops and the public API.",
   "license": "MIT",
   "type": "module",

@@ -401,3 +401,41 @@ export const depositAbi = [
     ],
   },
 ] as const;
+
+/** On-chain LP pair checker: a pair counts only if a known DEX factory confirms it. */
+export const lpCheckAbi = [
+  {
+    type: "function",
+    name: "checkPair",
+    stateMutability: "view",
+    inputs: [{ name: "pair", type: "address" }],
+    outputs: [
+      { name: "verified", type: "bool" },
+      { name: "dexName", type: "string" },
+      { name: "factory", type: "address" },
+    ],
+  },
+  {
+    type: "function",
+    name: "checkLock",
+    stateMutability: "view",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [
+      { name: "isLP", type: "bool" },
+      { name: "verified", type: "bool" },
+      { name: "dexName", type: "string" },
+      { name: "pair", type: "address" },
+    ],
+  },
+  {
+    type: "function",
+    name: "dexOf",
+    stateMutability: "view",
+    inputs: [{ name: "factory", type: "address" }],
+    outputs: [
+      { name: "name", type: "string" },
+      { name: "active", type: "bool" },
+    ],
+  },
+  { type: "function", name: "factories", stateMutability: "view", inputs: [], outputs: [{ type: "address[]" }] },
+] as const;

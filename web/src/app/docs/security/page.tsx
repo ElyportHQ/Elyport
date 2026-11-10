@@ -40,6 +40,11 @@ export default function SecurityDoc() {
         confirms the pair (today: Uniswap V2 on Elysium). Other LP locks are shown with an <strong>Unverified pair</strong>{" "}
         label and are left out of the badge, the widget and the API&apos;s liquidity figures.
       </p>
+      <p>
+        The same check runs on-chain in the <a href="/docs/contracts">LP checker</a> contract, so anyone (another contract, a
+        bot or an explorer) can call <code>checkLock(id)</code> or <code>checkPair(pair)</code> and get the answer without trusting
+        this website.
+      </p>
 
       <H2 id="limits">Known limits</H2>
       <ul>
