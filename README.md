@@ -34,9 +34,10 @@
 | --- | --- | --- |
 | **Refuel** | Users | Get HYPE for gas on Elysium, paid from Ethereum, Base, Arbitrum, Robinhood Chain, BNB Chain, HyperEVM or Solana |
 | **Gas Drop** | Builders | Send HYPE or any token to up to 500 wallets per batch, from a list or CSV |
-| **Locker** | Builders | Lock LP and tokens until a set date. Extend or top up, never shorten |
+| **Locker** | Builders | Lock LP and tokens until a set date, or in up to 20 tranches. Extend or top up, never shorten |
 | **Vesting** | Builders | Cliff plus linear or monthly release, for one wallet or a whole CSV |
 | **Token safety** | Traders | See how much of a token's LP and supply is locked or vesting before buying |
+| **Claim page** | Builders | One shareable link per token where recipients connect and claim: `elyport.com/claim/<token>` |
 | **My Elyport** | Everyone | Your locks, vesting and drops in one place, with Claim, Claim all and Withdraw |
 | **Lock badge** | Builders | A live "Liquidity locked" badge for your site or README at `elyport.com/badge/<token>` |
 
@@ -79,12 +80,14 @@ Instant refuels are capped per transaction, per wallet per day and per day. Larg
 
 | Contract | Chain | Address |
 | --- | --- | --- |
-| `ElyportLocker` | Elysium | [`0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39`](https://elysium.kinetiq.xyz/explorer/address/0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39) |
-| `ElyportVesting` | Elysium | [`0xb5cedd59dd57d9145ff6d5fca3fb171304f055f7`](https://elysium.kinetiq.xyz/explorer/address/0xb5cedd59dd57d9145ff6d5fca3fb171304f055f7) |
-| `ElyportDrop` | Elysium | [`0x9e5dc700de34a441e1d0b74fc88d1b1f666ff9b4`](https://elysium.kinetiq.xyz/explorer/address/0x9e5dc700de34a441e1d0b74fc88d1b1f666ff9b4) |
+| `ElyportLocker` | Elysium | [`0x7868e66c72df8dd0827f93e3674e53f72f8939cc`](https://elysium.kinetiq.xyz/explorer/address/0x7868e66c72df8dd0827f93e3674e53f72f8939cc) |
+| `ElyportVesting` | Elysium | [`0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e`](https://elysium.kinetiq.xyz/explorer/address/0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e) |
+| `ElyportDrop` | Elysium | [`0x7ba7b360771b23277991f29488afe8827d2bce33`](https://elysium.kinetiq.xyz/explorer/address/0x7ba7b360771b23277991f29488afe8827d2bce33) |
 | `ElyportRefuelVault` | Elysium | [`0xa43e860ec638b039cb926e98590852c2fdcbcf65`](https://elysium.kinetiq.xyz/explorer/address/0xa43e860ec638b039cb926e98590852c2fdcbcf65) |
 | `ElyportRefuelDeposit` | Ethereum, Base, Arbitrum, Robinhood Chain, BNB Chain | `0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39` |
 | `ElyportRefuelDeposit` | HyperEVM | `0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e` |
+
+Locker, Vesting and Drop are v2 (holder discounts, batch locks). The v1 versions were never used and are retired.
 
 Built on OpenZeppelin v5 (`Ownable2Step`, `ReentrancyGuard`, `Pausable`, `SafeERC20`). Fees are flat amounts in HYPE, forwarded straight to the fee recipient.
 

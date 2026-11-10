@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.2.0 — Claim pages, tranche locks and holder discounts (2026-11-10)
+
+### New
+- **Claim page** at `elyport.com/claim/<token>`: one link a project shares so recipients can connect and claim,
+  with project-wide vesting progress and a share card.
+- **Tranche locks**: lock one token in up to 20 tranches with different unlock dates in a single transaction
+  (presets for quarterly, monthly and 6-month).
+- **Holder discount**: the owner can give holders of a chosen token a discount on every fee. The app shows the
+  discounted fee per wallet.
+- **Explore**: search by name, symbol or address; filters for LP, tokens, unlocking in 7 days and active locks;
+  sort by newest or unlocking soon; LP pairs labelled by their tokens.
+
+### Contracts (v2, Elysium)
+| Contract | Address |
+| --- | --- |
+| ElyportLocker | `0x7868e66c72df8dd0827f93e3674e53f72f8939cc` |
+| ElyportVesting | `0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e` |
+| ElyportDrop | `0x7ba7b360771b23277991f29488afe8827d2bce33` |
+
+The v1 Locker, Vesting and Drop were never used and are retired. Refuel contracts are unchanged. 52 tests pass.
+
 ## v1.1.0 — Dashboard, token safety and lock badge (2026-11-10)
 
 ### New
