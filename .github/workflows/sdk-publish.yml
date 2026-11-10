@@ -1,8 +1,8 @@
 name: Publish SDK
 
 # Manual: publishes sdk/ to npm as @elyport/sdk.
-# First release: uses the NPM_TOKEN secret (granular token, read and write on @elyport).
-# After that: npm Trusted Publishing (OIDC) for this workflow, so NPM_TOKEN can be deleted.
+# Auth: npm Trusted Publishing (OIDC) configured for this workflow on npmjs.com, no token needed.
+# Bump the version in sdk/package.json before running it.
 on:
   workflow_dispatch:
     inputs:
@@ -26,6 +26,8 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
+      - name: npm with trusted publishing support
+        run: npm install -g npm@latest && npm --version
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: npm publish --access public --provenance
