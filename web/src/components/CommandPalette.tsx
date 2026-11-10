@@ -34,7 +34,11 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 
   const items = useMemo<Item[]>(() => {
     const t = q.trim();
-    if (isAddress(t)) return [{ label: "Open token page", hint: `${t.slice(0, 6)}…${t.slice(-4)}`, href: `/token/${t}`, icon: <IconSearch />, keywords: "" }];
+    if (isAddress(t))
+      return [
+        { label: "Open token page", hint: `${t.slice(0, 6)}…${t.slice(-4)}`, href: `/token/${t}`, icon: <IconSearch />, keywords: "" },
+        { label: "Open claim page", hint: "Vesting claims", href: `/claim/${t}`, icon: <IconBars />, keywords: "" },
+      ];
     if (/^\d+$/.test(t))
       return [
         { label: `Open lock #${t}`, hint: "Locker", href: `/lock/${t}`, icon: <IconLock />, keywords: "" },

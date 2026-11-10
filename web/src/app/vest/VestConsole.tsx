@@ -8,6 +8,8 @@ import { contracts, elysium, explorerTx } from "@/lib/config";
 import { vestingAbi } from "@/lib/abis";
 import { fmtAmount, fmtDate, parseRecipients, short } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
+import { useVestFee } from "@/lib/useToolFee";
+import { DiscountHint, FeeValue } from "@/components/FeeLine";
 import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import { VestBars } from "@/components/home/Scenes";
 
@@ -60,7 +62,7 @@ function CreateSchedule() {
   });
   const symbol = meta.data?.[0]?.result as string | undefined;
   const decimals = meta.data?.[1]?.result as number | undefined;
-  const fee = useReadContract({ chainId: cid, address: contracts.vesting, abi: vestingAbi, functionName: "vestingFee", query: { enabled: !!contracts.vesting } });
+  const fee = useVestFee();
 
   const recipients = useMemo(() => {
     if (!many) return isAddress(single) && amount ? [{ address: single as Address, amount }] : [];
@@ -85,7 +87,7 @@ function CreateSchedule() {
 
   const { writeContractAsync } = useWriteContract();
   const { state, run } = useChainTx(cid);
-  const ready = startTs > 0 && !!contracts.vesting && !!tokenAddr && recipients.length > 0 && !!amounts && total > 0n && cliff <= duration && fee.data !== undefined && recipients.length <= 100;
+  const ready = startTs > 0 && !!contracts.vesting && !!tokenAddr && recipients.length > 0 && !!amounts && total > 0n && cliff <= duration && fee.fee !== undefined && recipients.length <= 100;
 
   async function create() {
     if (!ready || !contracts.vesting || !tokenAddr || !amounts) return;
@@ -100,7 +102,7 @@ function CreateSchedule() {
         abi: vestingAbi,
         functionName: "createSchedules",
         args: [tokenAddr, recipients.map((r) => r.address), amounts, BigInt(startTs), BigInt(cliff), BigInt(duration), BigInt(period), revocable],
-        value: fee.data,
+        value: fee.fee,
       }),
     );
     if (!receipt) return;
@@ -111,8 +113,8 @@ function CreateSchedule() {
       kind: "vest",
       title: "Vesting created",
       detail: `${ev.length || recipients.length} ${(ev.length || recipients.length) === 1 ? "schedule is" : "schedules are"} live. Tokens release on time, claim by claim.`,
-      href: first !== undefined ? `/vest/${first}` : undefined,
-      hrefLabel: "Open schedule",
+      href: tokenAddr ? `/claim/${tokenAddr}` : first !== undefined ? `/vest/${first}` : undefined,
+      hrefLabel: tokenAddr ? "Open claim page to share" : "Open schedule",
       externalHref: explorerTx(receipt.transactionHash),
     });
   }
@@ -209,8 +211,11 @@ function CreateSchedule() {
           <dt>Per month</dt>
           <dd>{perMonth !== undefined && decimals !== undefined ? fmtAmount(perMonth, decimals) : "—"}</dd>
           <dt>Fee</dt>
-          <dd>{fee.data !== undefined ? `${fmtAmount(fee.data, 18, 4)} HYPE` : "—"}</dd>
+          <dd>
+            <FeeValue f={fee} />
+          </dd>
         </dl>
+        <DiscountHint f={fee} />
         {cliff > duration && <p className="error">The cliff cannot be longer than the duration.</p>}
         {!contracts.vesting && <p className="warn">Vesting is not deployed on this network yet.</p>}
 

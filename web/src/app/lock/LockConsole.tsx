@@ -8,12 +8,26 @@ import { contracts, elysium, explorerTx } from "@/lib/config";
 import { lockerAbi } from "@/lib/abis";
 import { countdown, fmtAmount, fmtDate, short } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
+import { useLockFee } from "@/lib/useToolFee";
+import { DiscountHint, FeeValue } from "@/components/FeeLine";
 import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import { useMounted } from "@/lib/useMounted";
 import { LockRing } from "@/components/home/Scenes";
 
 const cid = elysium.id;
 const DAY = 86_400;
+const MONTH = 30 * DAY;
+type Tranche = { pct: string; date: string };
+const isoDay = (ts: number) => new Date(ts * 1000).toISOString().slice(0, 10);
+/** n equal tranches, the first one `every` seconds from now. */
+function evenTranches(n: number, every: number): Tranche[] {
+  const now = Math.floor(Date.now() / 1000);
+  const base = Math.floor(10_000 / n);
+  return Array.from({ length: n }, (_, i) => ({
+    pct: ((i === n - 1 ? 10_000 - base * (n - 1) : base) / 100).toString(),
+    date: isoDay(now + (i + 1) * every),
+  }));
+}
 const presets = [
   { label: "30d", days: 30 },
   { label: "90d", days: 90 },
@@ -48,6 +62,8 @@ function CreateLock() {
   const [date, setDate] = useState("");
   const [owner, setOwner] = useState("");
   const [note, setNote] = useState("");
+  const [split, setSplit] = useState(false);
+  const [tranches, setTranches] = useState<Tranche[]>([]);
   const [createdId, setCreatedId] = useState<bigint | undefined>();
   const [moment, setMoment] = useState<Moment | null>(null);
   useCelebratePreview(setMoment, { kind: "lock", title: "Locked", detail: "Lock #12 is live. Anyone can verify it on its public page.", href: "/locks", hrefLabel: "Explore locks" });
@@ -73,7 +89,10 @@ function CreateLock() {
   const balance = meta.data?.[2]?.result as bigint | undefined;
   const supply = meta.data?.[3]?.result as bigint | undefined;
 
-  const fee = useReadContract({ chainId: cid, address: contracts.locker, abi: lockerAbi, functionName: "lockFee", query: { enabled: !!contracts.locker } });
+  const fee = useLockFee();
+  useEffect(() => {
+    if (split && tranches.length === 0) setTranches(evenTranches(4, 3 * MONTH));
+  }, [split, tranches.length]);
 
   const unlockAt = useMemo(() => {
     if (date) return Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
@@ -92,8 +111,37 @@ function CreateLock() {
   const { writeContractAsync } = useWriteContract();
   const { state, run } = useChainTx(cid);
 
+  // Tranches: percentages in basis points, dates as unix seconds, amounts split exactly.
+  const plan = useMemo(() => {
+    if (!split) return undefined;
+    const bps = tranches.map((t) => Math.round(Number(t.pct || "0") * 100));
+    const dates = tranches.map((t) => (t.date ? Math.floor(new Date(`${t.date}T00:00:00Z`).getTime() / 1000) : 0));
+    const sumBps = bps.reduce((a, b) => a + b, 0);
+    let amounts: bigint[] | undefined;
+    if (amountWei && sumBps === 10_000) {
+      let used = 0n;
+      amounts = bps.map((b, i) => {
+        const v = i === bps.length - 1 ? amountWei - used : (amountWei * BigInt(b)) / 10_000n;
+        used += v;
+        return v;
+      });
+    }
+    const now = Date.now() / 1000;
+    const datesOk = dates.every((d) => d > now);
+    const ok = tranches.length > 0 && tranches.length <= 20 && sumBps === 10_000 && bps.every((b) => b > 0) && datesOk && !!amounts && amounts.every((a) => a > 0n);
+    return { bps, dates, sumBps, amounts, ok, datesOk };
+  }, [split, tranches, amountWei]);
+  const count = split ? Math.max(tranches.length, 1) : 1;
+
   const ready =
-    !!contracts.locker && !!tokenAddr && !!amountWei && amountWei > 0n && (balance === undefined || amountWei <= balance) && isAddress(owner) && unlockAt > Date.now() / 1000 && fee.data !== undefined;
+    !!contracts.locker &&
+    !!tokenAddr &&
+    !!amountWei &&
+    amountWei > 0n &&
+    (balance === undefined || amountWei <= balance) &&
+    isAddress(owner) &&
+    (split ? !!plan?.ok : unlockAt > Date.now() / 1000) &&
+    fee.fee !== undefined;
 
   async function lock() {
     if (!ready || !contracts.locker || !tokenAddr || !amountWei) return;
@@ -101,6 +149,31 @@ function CreateLock() {
     setCreatedId(undefined);
     const ok = await run("Approve", () => writeContractAsync({ chainId: cid, address: tokenAddr, abi: erc20Abi, functionName: "approve", args: [locker, amountWei] }));
     if (!ok) return;
+    if (split && plan?.amounts) {
+      const amounts = plan.amounts;
+      const receipt = await run("Lock", () =>
+        writeContractAsync({
+          chainId: cid,
+          address: locker,
+          abi: lockerAbi,
+          functionName: "createLocks",
+          args: [tokenAddr, amounts, plan.dates.map((d) => BigInt(d)), owner as Address, isLP, note],
+          value: (fee.fee ?? 0n) * BigInt(amounts.length),
+        }),
+      );
+      if (!receipt) return;
+      const ids = parseEventLogs({ abi: lockerAbi, logs: receipt.logs, eventName: "LockCreated" }).map((l) => l.args.id);
+      setCreatedId(ids[0]);
+      setMoment({
+        kind: "lock",
+        title: "Locked in tranches",
+        detail: `${amounts.length} locks unlock from ${fmtDate(Math.min(...plan.dates))} to ${fmtDate(Math.max(...plan.dates))}. Anyone can verify them.`,
+        href: `/token/${tokenAddr}`,
+        hrefLabel: "Open token page",
+        externalHref: explorerTx(receipt.transactionHash),
+      });
+      return;
+    }
     const receipt = await run("Lock", () =>
       writeContractAsync({
         chainId: cid,
@@ -108,7 +181,7 @@ function CreateLock() {
         abi: lockerAbi,
         functionName: "createLock",
         args: [tokenAddr, amountWei, BigInt(unlockAt), owner as Address, isLP, note],
-        value: fee.data,
+        value: fee.fee,
       }),
     );
     if (!receipt) return;
@@ -178,6 +251,15 @@ function CreateLock() {
           </div>
         </fieldset>
 
+        <div className="segmented" role="group" aria-label="Unlock plan">
+          <button type="button" aria-pressed={!split} onClick={() => setSplit(false)}>
+            One date
+          </button>
+          <button type="button" aria-pressed={split} onClick={() => setSplit(true)}>
+            Tranches
+          </button>
+        </div>
+        {!split ? (
         <fieldset style={{ margin: 0, padding: 0, border: 0 }}>
           <legend className="eyebrow" style={{ marginBottom: 10 }}>
             Unlock date
@@ -200,6 +282,9 @@ function CreateLock() {
           </div>
           <input className="input" type="date" aria-label="Custom unlock date" value={date} onChange={(e) => setDate(e.target.value)} />
         </fieldset>
+        ) : (
+          <TrancheEditor tranches={tranches} setTranches={setTranches} plan={plan} amounts={plan?.amounts} decimals={decimals} symbol={symbol} />
+        )}
 
         <label className="field">
           Withdraws to
@@ -221,10 +306,21 @@ function CreateLock() {
           <dt>Of supply</dt>
           <dd>{pct !== undefined ? `${pct}%` : "—"}</dd>
           <dt>Unlocks</dt>
-          <dd>{mounted ? fmtDate(unlockAt) : "—"}</dd>
-          <dt>Fee</dt>
-          <dd>{fee.data !== undefined ? `${fmtAmount(fee.data, 18, 4)} HYPE` : "—"}</dd>
+          <dd>
+            {!mounted
+              ? "—"
+              : split
+                ? plan?.dates.length && plan.datesOk
+                  ? `${tranches.length} dates · ${fmtDate(Math.min(...plan.dates))} → ${fmtDate(Math.max(...plan.dates))}`
+                  : "—"
+                : fmtDate(unlockAt)}
+          </dd>
+          <dt>{split ? `Fee · ${count} locks` : "Fee"}</dt>
+          <dd>
+            <FeeValue f={fee} times={count} />
+          </dd>
         </dl>
+        <DiscountHint f={fee} />
         {!contracts.locker && <p className="warn">Locker is not deployed on this network yet.</p>}
 
         <button type="button" className="btn btn-dark btn-lg btn-block" disabled={!ready || state.status === "pending"} onClick={lock}>
@@ -349,5 +445,79 @@ function MyLocks() {
       </div>
       {state.message && <p className={state.status === "error" ? "error" : state.status === "success" ? "ok" : "note"}>{state.message}</p>}
     </div>
+  );
+}
+
+function TrancheEditor({
+  tranches,
+  setTranches,
+  plan,
+  amounts,
+  decimals,
+  symbol,
+}: {
+  tranches: Tranche[];
+  setTranches: (t: Tranche[]) => void;
+  plan?: { sumBps: number; datesOk: boolean };
+  amounts?: bigint[];
+  decimals?: number;
+  symbol?: string;
+}) {
+  const set = (i: number, k: keyof Tranche, v: string) => setTranches(tranches.map((t, j) => (j === i ? { ...t, [k]: v } : t)));
+  const sum = (plan?.sumBps ?? 0) / 100;
+  return (
+    <fieldset style={{ margin: 0, padding: 0, border: 0 }}>
+      <legend className="eyebrow" style={{ marginBottom: 10 }}>
+        Unlock in tranches · up to 20
+      </legend>
+      <div className="preset-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", marginBottom: 10 }}>
+        <button type="button" className="preset small" onClick={() => setTranches(evenTranches(4, 3 * MONTH))}>
+          4 × quarterly
+        </button>
+        <button type="button" className="preset small" onClick={() => setTranches(evenTranches(12, MONTH))}>
+          12 × monthly
+        </button>
+        <button type="button" className="preset small" onClick={() => setTranches(evenTranches(2, 6 * MONTH))}>
+          2 × 6 months
+        </button>
+      </div>
+      <div className="stack" style={{ gap: 8 }}>
+        {tranches.map((t, i) => (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "84px 1fr auto", gap: 8, alignItems: "center" }}>
+            <div style={{ position: "relative" }}>
+              <input className="input" aria-label={`Tranche ${i + 1} percent`} inputMode="decimal" value={t.pct} onChange={(e) => set(i, "pct", e.target.value.replace(/[^\d.]/g, ""))} style={{ paddingRight: 26 }} />
+              <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "#5D6573" }}>%</span>
+            </div>
+            <input className="input" type="date" aria-label={`Tranche ${i + 1} date`} value={t.date} onChange={(e) => set(i, "date", e.target.value)} />
+            <button type="button" className="btn btn-ghost" aria-label={`Remove tranche ${i + 1}`} disabled={tranches.length <= 1} onClick={() => setTranches(tranches.filter((_, j) => j !== i))}>
+              ✕
+            </button>
+            {amounts?.[i] !== undefined && decimals !== undefined && (
+              <div className="eyebrow" style={{ gridColumn: "1 / -1", marginTop: -2 }}>
+                {fmtAmount(amounts[i], decimals)} {symbol ?? ""}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 8, flexWrap: "wrap" }}>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          disabled={tranches.length >= 20}
+          onClick={() => {
+            const last = tranches[tranches.length - 1];
+            const lastTs = last?.date ? Math.floor(new Date(`${last.date}T00:00:00Z`).getTime() / 1000) : Math.floor(Date.now() / 1000);
+            setTranches([...tranches, { pct: "0", date: isoDay(lastTs + MONTH) }]);
+          }}
+        >
+          + Add tranche
+        </button>
+        <span className={sum === 100 ? "ok" : "error"} style={{ margin: 0, fontSize: 14 }}>
+          Total {sum}%{sum !== 100 ? " · must be 100%" : ""}
+        </span>
+      </div>
+      {plan && !plan.datesOk && <p className="error">Every date must be in the future.</p>}
+    </fieldset>
   );
 }

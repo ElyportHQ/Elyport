@@ -168,7 +168,14 @@ export function TokenView({ token }: { token: Address }) {
       </section>
 
       <section>
-        <h2 style={{ fontWeight: 500, fontSize: 24 }}>Vesting</h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <h2 style={{ fontWeight: 500, fontSize: 24 }}>Vesting</h2>
+          {schedList.length > 0 && (
+            <Link className="btn btn-ghost" href={`/claim/${token}`}>
+              Claim page →
+            </Link>
+          )}
+        </div>
         {schedList.length === 0 ? (
           <p className="note">No vesting schedules for this token on Elyport.</p>
         ) : (

@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useAccount, useReadContract, useReadContracts, useWriteContract } from "wagmi";
+import { useAccount, useReadContracts, useWriteContract } from "wagmi";
 import { erc20Abi, formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { contracts, elysium } from "@/lib/config";
 import { dropAbi } from "@/lib/abis";
 import { chunk, fmtAmount, parseRecipients } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
+import { useDropFee } from "@/lib/useToolFee";
+import { DiscountHint, FeeValue } from "@/components/FeeLine";
 import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import { FanOut } from "@/components/home/Scenes";
 
@@ -26,7 +28,7 @@ export function DropConsole() {
   const cid = elysium.id;
   const tokenAddr = isAddress(token) ? (token as Address) : undefined;
 
-  const fee = useReadContract({ chainId: cid, address: contracts.drop, abi: dropAbi, functionName: "dropFee", query: { enabled: !!contracts.drop } });
+  const fee = useDropFee();
   const meta = useReadContracts({
     contracts: tokenAddr
       ? [
@@ -52,7 +54,7 @@ export function DropConsole() {
   }, [parsed, decimals]);
   const total = amounts?.reduce((a, b) => a + b, 0n) ?? 0n;
   const batches = Math.ceil(parsed.valid.length / BATCH);
-  const feeEach = fee.data ?? 0n;
+  const feeEach = fee.fee ?? 0n;
 
   const { writeContractAsync } = useWriteContract();
   const { state, setState, run } = useChainTx(cid);
@@ -158,8 +160,11 @@ export function DropConsole() {
           <dt>Batches</dt>
           <dd>{batches}</dd>
           <dt>Fee · per batch</dt>
-          <dd>{fee.data !== undefined ? `${fmtAmount(feeEach * BigInt(Math.max(batches, 1)), 18, 4)} HYPE` : "—"}</dd>
+          <dd>
+            <FeeValue f={fee} times={Math.max(batches, 1)} />
+          </dd>
         </dl>
+        <DiscountHint f={fee} />
         {notEnough && <p className="error">Your balance is lower than the total.</p>}
         {!contracts.drop && <p className="warn">Gas Drop is not deployed on this network yet.</p>}
 

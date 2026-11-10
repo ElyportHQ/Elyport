@@ -13,6 +13,24 @@ const lockTuple = {
 
 export const lockerAbi = [
   { type: "function", name: "lockFee", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "lockFeeFor", stateMutability: "view", inputs: [{ name: "user", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "discountToken", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
+  { type: "function", name: "discountMinBalance", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "discountBps", stateMutability: "view", inputs: [], outputs: [{ type: "uint16" }] },
+  {
+    type: "function",
+    name: "createLocks",
+    stateMutability: "payable",
+    inputs: [
+      { name: "token", type: "address" },
+      { name: "amounts", type: "uint256[]" },
+      { name: "unlockAts", type: "uint64[]" },
+      { name: "lockOwner", type: "address" },
+      { name: "isLP", type: "bool" },
+      { name: "note", type: "string" },
+    ],
+    outputs: [{ name: "firstId", type: "uint256" }],
+  },
   { type: "function", name: "lockCount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   {
     type: "function",
@@ -114,6 +132,7 @@ const scheduleTuple = {
 
 export const vestingAbi = [
   { type: "function", name: "vestingFee", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "vestingFeeFor", stateMutability: "view", inputs: [{ name: "user", type: "address" }], outputs: [{ type: "uint256" }] },
   { type: "function", name: "scheduleCount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   {
     type: "function",
@@ -203,6 +222,7 @@ export const vestingAbi = [
 
 export const dropAbi = [
   { type: "function", name: "dropFee", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "dropFeeFor", stateMutability: "view", inputs: [{ name: "user", type: "address" }], outputs: [{ type: "uint256" }] },
   {
     type: "function",
     name: "MAX_RECIPIENTS",
