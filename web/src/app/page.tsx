@@ -229,7 +229,7 @@ export default function Home() {
         <div className="cta-copy">
           <h2>Step through the gate</h2>
           <p className="lead">Refuel, drop, lock, vest. On Elysium.</p>
-          <Link href="/refuel" className="btn btn-dark btn-lg">
+          <Link href="/drop" className="btn btn-dark btn-lg">
             Launch app
           </Link>
         </div>
