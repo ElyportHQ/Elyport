@@ -90,6 +90,9 @@ function CreateLock() {
   const supply = meta.data?.[3]?.result as bigint | undefined;
 
   const fee = useLockFee();
+  // Tranches need Locker v2 (createLocks); hide the option until the deployed Locker supports it.
+  const v2 = useReadContract({ chainId: cid, address: contracts.locker, abi: lockerAbi, functionName: "discountBps", query: { enabled: !!contracts.locker, retry: false } });
+  const canSplit = v2.isSuccess;
   useEffect(() => {
     if (split && tranches.length === 0) setTranches(evenTranches(4, 3 * MONTH));
   }, [split, tranches.length]);
@@ -113,7 +116,7 @@ function CreateLock() {
 
   // Tranches: percentages in basis points, dates as unix seconds, amounts split exactly.
   const plan = useMemo(() => {
-    if (!split) return undefined;
+    if (!split || !canSplit) return undefined;
     const bps = tranches.map((t) => Math.round(Number(t.pct || "0") * 100));
     const dates = tranches.map((t) => (t.date ? Math.floor(new Date(`${t.date}T00:00:00Z`).getTime() / 1000) : 0));
     const sumBps = bps.reduce((a, b) => a + b, 0);
@@ -130,8 +133,8 @@ function CreateLock() {
     const datesOk = dates.every((d) => d > now);
     const ok = tranches.length > 0 && tranches.length <= 20 && sumBps === 10_000 && bps.every((b) => b > 0) && datesOk && !!amounts && amounts.every((a) => a > 0n);
     return { bps, dates, sumBps, amounts, ok, datesOk };
-  }, [split, tranches, amountWei]);
-  const count = split ? Math.max(tranches.length, 1) : 1;
+  }, [split, canSplit, tranches, amountWei]);
+  const count = plan ? Math.max(tranches.length, 1) : 1;
 
   const ready =
     !!contracts.locker &&
@@ -140,7 +143,7 @@ function CreateLock() {
     amountWei > 0n &&
     (balance === undefined || amountWei <= balance) &&
     isAddress(owner) &&
-    (split ? !!plan?.ok : unlockAt > Date.now() / 1000) &&
+    (plan ? plan.ok : unlockAt > Date.now() / 1000) &&
     fee.fee !== undefined;
 
   async function lock() {
@@ -251,6 +254,7 @@ function CreateLock() {
           </div>
         </fieldset>
 
+        {canSplit && (
         <div className="segmented" role="group" aria-label="Unlock plan">
           <button type="button" aria-pressed={!split} onClick={() => setSplit(false)}>
             One date
@@ -259,7 +263,8 @@ function CreateLock() {
             Tranches
           </button>
         </div>
-        {!split ? (
+        )}
+        {!split || !canSplit ? (
         <fieldset style={{ margin: 0, padding: 0, border: 0 }}>
           <legend className="eyebrow" style={{ marginBottom: 10 }}>
             Unlock date
@@ -309,13 +314,13 @@ function CreateLock() {
           <dd>
             {!mounted
               ? "—"
-              : split
-                ? plan?.dates.length && plan.datesOk
+              : plan
+                ? plan.dates.length && plan.datesOk
                   ? `${tranches.length} dates · ${fmtDate(Math.min(...plan.dates))} → ${fmtDate(Math.max(...plan.dates))}`
                   : "—"
                 : fmtDate(unlockAt)}
           </dd>
-          <dt>{split ? `Fee · ${count} locks` : "Fee"}</dt>
+          <dt>{plan ? `Fee · ${count} locks` : "Fee"}</dt>
           <dd>
             <FeeValue f={fee} times={count} />
           </dd>
