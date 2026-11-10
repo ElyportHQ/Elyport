@@ -27,9 +27,27 @@ export function countdown(unlockAt: bigint | number, now = Date.now() / 1000): s
 }
 
 /** Same key the relayer and the vault use: keccak256(abi.encode(chainId, depositContract, id)). */
-export function depositKey(chainId: number, depositContract: Address, id: bigint) {
+export type DepositContent = { sender: Address; recipient: Address; token: Address; amount: bigint; minOut: bigint };
+
+/**
+ * Key the vault uses to pay a deposit once. It covers the deposit's contents, not only its id, so if a
+ * source chain reorgs and a different deposit lands under the same id, it gets a different key.
+ */
+export function depositKey(chainId: number, depositContract: Address, id: bigint, d: DepositContent) {
   return keccak256(
-    encodeAbiParameters([{ type: "uint256" }, { type: "address" }, { type: "uint256" }], [BigInt(chainId), depositContract, id]),
+    encodeAbiParameters(
+      [
+        { type: "uint256" },
+        { type: "address" },
+        { type: "uint256" },
+        { type: "address" },
+        { type: "address" },
+        { type: "address" },
+        { type: "uint256" },
+        { type: "uint256" },
+      ],
+      [BigInt(chainId), depositContract, id, d.sender, d.recipient, d.token, d.amount, d.minOut],
+    ),
   );
 }
 

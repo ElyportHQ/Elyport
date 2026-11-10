@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Security
+- **Verified LP pairs**: LP locks count as locked liquidity only when the pair comes from a known DEX factory that
+  confirms it (Uniswap V2 on Elysium; more via `NEXT_PUBLIC_DEX_FACTORIES`). Others show "Unverified pair" and are left
+  out of the badge, widget and API liquidity figures.
+- **Relayer**: finds pending deposits by id instead of a 3,000-block log window, waits for source-chain confirmations,
+  keys each deposit by its full contents (reorg-safe), honours the sender's minimum, and refunds instead of delivering
+  close to the self-refund window.
+- **Prices** from CoinGecko, DefiLlama and Hyperliquid, median per asset; quoting stops if sources disagree by >3%.
+- **Rate limits** on `/api/refuel/process` (with per-deposit dedupe) and `/api/v1`.
+
+### Contracts v3 (code and tests; not deployed yet)
+- Hard fee caps (Locker 1, Vesting 1, Drop 0.5 HYPE), vault cap ceilings (1 / 3 / 50 HYPE), sender self-refund after
+  24 hours (works while paused), `minOut` recorded with each refuel deposit, 60k gas per Gas Drop HYPE recipient.
+
+### Other
+- Terms list contact channels; docs cover the owner wallet, LP verification and known limits; footer shows the network
+  before the first block loads; web package version matches releases.
+
 ## v1.3.0 — Widgets, public API and SDK (2026-11-10)
 
 ### New

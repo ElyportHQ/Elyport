@@ -15,6 +15,7 @@ export default function ApiDoc() {
           ["Auth", "None, no API key"],
           ["CORS", "Open to every origin"],
           ["Freshness", "Cached about 30 seconds"],
+          ["Rate limit", "About 60 requests a minute per IP"],
         ]}
       />
 
@@ -46,7 +47,7 @@ export default function ApiDoc() {
     "vestingSchedules": 12
   },
   "liquidity": [
-    { "pair": "0x…", "lockedPercent": 92.4, "lockedUntil": 1830297600, "locks": 1 }
+    { "pair": "0x…", "dex": "Uniswap V2", "verified": true, "lockedPercent": 92.4, "lockedUntil": 1830297600, "locks": 1 }
   ],
   "locks": [ { "id": "4", "isLP": true, "amount": "…", "unlockAt": 1830297600, "status": "locked", "url": "https://elyport.com/lock/4" } ],
   "vesting": [ … ],
@@ -60,6 +61,10 @@ export default function ApiDoc() {
         <li>Times are Unix timestamps in seconds.</li>
         <li>Percentages are numbers from 0 to 100.</li>
         <li>Lock status is <code>locked</code>, <code>unlocked</code> or <code>withdrawn</code>.</li>
+        <li>
+          <code>bestLiquidityLockedPercent</code> only counts pairs with <code>verified: true</code>, meaning the pair comes from a
+          known DEX factory.
+        </li>
       </ul>
 
       <H2 id="errors">Errors</H2>
@@ -68,6 +73,7 @@ export default function ApiDoc() {
         rows={[
           ["400", "The address or id is not valid"],
           ["404", "That lock or schedule does not exist"],
+          ["429", "Too many requests, slow down or cache on your side"],
           ["502", "Elysium could not be reached, try again shortly"],
         ]}
       />

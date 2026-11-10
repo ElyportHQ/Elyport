@@ -3,17 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAccount, useConfig, useReadContract, useWriteContract } from "wagmi";
+import { RefuelHistoryRow } from "./RefuelHistoryRow";
 import { readContract } from "wagmi/actions";
 import { erc20Abi, isAddress, parseEther, parseEventLogs, parseUnits, type Address, type Hash } from "viem";
 import { contracts, elysium, REFUEL_FEE_BPS, REFUEL_MAX_USD, REFUEL_PRESETS_USD, sourceChains } from "@/lib/config";
 import { depositAbi, vaultAbi } from "@/lib/abis";
-import { depositKey, fmtAmount, short } from "@/lib/format";
+import { depositKey, fmtAmount } from "@/lib/format";
 import { useChainTx } from "@/lib/useChainTx";
 import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import type { UsdPrices } from "@/lib/prices";
 
 type Pay = "usdc" | "native";
-type HistoryItem = { chain: string; usd: number; tx: Hash; key: `0x${string}`; ts: number };
+type HistoryItem = { chain: string; usd: number; tx: Hash; key: `0x${string}`; ts: number; chainId?: number; id?: string; deposit?: Address };
+/** Accept up to 3% less HYPE than quoted (price moves while the payment confirms); below that, refund. */
+const SLIPPAGE = 0.03;
 const HISTORY_KEY = "elyport.refuels";
 
 function loadHistory(): HistoryItem[] {
@@ -91,12 +94,14 @@ export function RefuelConsole() {
   const { state, run } = useChainTx(typeof chainId === "number" ? chainId : 8453);
 
   const validRecipient = isAddress(recipient);
-  const ready = instant && validRecipient && amountUsd >= 1 && amountUsd <= REFUEL_MAX_USD && (payMode === "usdc" || !!prices.data);
+  const ready = instant && validRecipient && amountUsd >= 1 && amountUsd <= REFUEL_MAX_USD && !!prices.data && !!receiveHype;
 
   async function refuel() {
     if (!source?.deposit || !validRecipient) return;
     const deposit = source.deposit;
     const to = recipient as Address;
+    if (!receiveHype) return;
+    const minOut = parseEther((receiveHype * (1 - SLIPPAGE)).toFixed(12));
     setKey(undefined);
 
     let receipt;
@@ -110,19 +115,20 @@ export function RefuelConsole() {
           if (!ok) return;
         }
       }
-      receipt = await run("Refuel", () => writeContractAsync({ chainId: source.id, address: deposit, abi: depositAbi, functionName: "depositToken", args: [usdc, amount, to] }));
+      receipt = await run("Refuel", () => writeContractAsync({ chainId: source.id, address: deposit, abi: depositAbi, functionName: "depositToken", args: [usdc, amount, to, minOut] }));
     } else {
       const price = prices.data?.[source.coingeckoId as keyof UsdPrices];
       if (!price) return;
       const value = parseEther((amountUsd / price).toFixed(8));
-      receipt = await run("Refuel", () => writeContractAsync({ chainId: source.id, address: deposit, abi: depositAbi, functionName: "depositNative", args: [to], value }));
+      receipt = await run("Refuel", () => writeContractAsync({ chainId: source.id, address: deposit, abi: depositAbi, functionName: "depositNative", args: [to, minOut], value }));
     }
     if (!receipt) return;
 
     const logs = parseEventLogs({ abi: depositAbi, logs: receipt.logs, eventName: "Deposited" });
-    const id = logs[0]?.args.id;
-    if (id === undefined) return;
-    const k = depositKey(source.id, deposit, id);
+    const ev = logs[0]?.args;
+    if (!ev || ev.id === undefined || !ev.sender || !ev.recipient || ev.token === undefined || ev.amount === undefined || ev.minOut === undefined) return;
+    const id = ev.id;
+    const k = depositKey(source.id, deposit, id, { sender: ev.sender, recipient: ev.recipient, token: ev.token, amount: ev.amount, minOut: ev.minOut });
     setKey(k);
     // Ask the relayer to deliver now; cron picks it up anyway if this call fails.
     fetch("/api/refuel/process", {
@@ -130,7 +136,7 @@ export function RefuelConsole() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ chainId: source.id, id: id.toString() }),
     }).catch(() => undefined);
-    const next = [{ chain: source.name, usd: amountUsd, tx: receipt.transactionHash, key: k, ts: Date.now() }, ...history];
+    const next = [{ chain: source.name, usd: amountUsd, tx: receipt.transactionHash, key: k, ts: Date.now(), chainId: source.id, id: id.toString(), deposit }, ...history];
     setHistory(next);
     saveHistory(next);
   }
@@ -229,6 +235,8 @@ export function RefuelConsole() {
               </dd>
               <dt>You receive</dt>
               <dd>{receiveHype ? `≈ ${receiveHype.toFixed(4)} HYPE` : "…"}</dd>
+              <dt>Guaranteed at least</dt>
+              <dd>{receiveHype ? `${(receiveHype * (1 - SLIPPAGE)).toFixed(4)} HYPE or a refund` : "…"}</dd>
               <dt>Fee · 0.5%</dt>
               <dd>${((amountUsd * REFUEL_FEE_BPS) / 10_000).toFixed(2)}</dd>
               <dt>Arrives</dt>
@@ -287,7 +295,8 @@ export function RefuelConsole() {
             <div style={{ width: stock.data && stock.data > 0n ? "70%" : "4%" }} />
           </div>
           <p className="muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>
-            If the stock runs out or a payment cannot be delivered, the relayer refunds it on the chain you paid from.
+            If the stock runs out or a payment cannot be delivered, the relayer refunds it on the chain you paid from. If nothing
+            happens within 24 hours, you can refund it yourself from Your refuels.
           </p>
         </section>
 
@@ -300,14 +309,7 @@ export function RefuelConsole() {
           ) : (
             <ul className="list-rows">
               {history.map((h) => (
-                <li key={h.tx}>
-                  <span>
-                    ${h.usd} from {h.chain}
-                  </span>
-                  <span className="mono" style={{ fontSize: 13 }}>
-                    {short(h.tx)}
-                  </span>
-                </li>
+                <RefuelHistoryRow key={h.tx} item={h} />
               ))}
             </ul>
           )}

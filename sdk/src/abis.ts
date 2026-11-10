@@ -333,6 +333,7 @@ const depositTuple = {
     { name: "recipient", type: "address" },
     { name: "token", type: "address" },
     { name: "amount", type: "uint256" },
+    { name: "minOut", type: "uint256" },
     { name: "createdAt", type: "uint64" },
     { name: "status", type: "uint8" },
   ],
@@ -343,7 +344,10 @@ export const depositAbi = [
     type: "function",
     name: "depositNative",
     stateMutability: "payable",
-    inputs: [{ name: "recipient", type: "address" }],
+    inputs: [
+      { name: "recipient", type: "address" },
+      { name: "minOut", type: "uint256" },
+    ],
     outputs: [{ name: "id", type: "uint256" }],
   },
   {
@@ -354,6 +358,7 @@ export const depositAbi = [
       { name: "token", type: "address" },
       { name: "amount", type: "uint256" },
       { name: "recipient", type: "address" },
+      { name: "minOut", type: "uint256" },
     ],
     outputs: [{ name: "id", type: "uint256" }],
   },
@@ -381,6 +386,9 @@ export const depositAbi = [
     inputs: [{ name: "id", type: "uint256" }],
     outputs: [],
   },
+  { type: "function", name: "claimRefund", stateMutability: "nonpayable", inputs: [{ name: "id", type: "uint256" }], outputs: [] },
+  { type: "function", name: "depositCount", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "REFUND_DELAY", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   {
     type: "event",
     name: "Deposited",
@@ -390,6 +398,7 @@ export const depositAbi = [
       { name: "recipient", type: "address", indexed: true },
       { name: "token", type: "address", indexed: false },
       { name: "amount", type: "uint256", indexed: false },
+      { name: "minOut", type: "uint256", indexed: false },
     ],
   },
 ] as const;

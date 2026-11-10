@@ -3,6 +3,7 @@ import { erc20Abi, type Address } from "viem";
 import { contracts } from "./config";
 import { lockerAbi } from "./abis";
 import { elysiumClient } from "./og";
+import { verifyPairs } from "./verifyPairs";
 
 type LockT = { token: Address; owner: Address; amount: bigint; unlockAt: bigint; createdAt: bigint; isLP: boolean; withdrawn: boolean };
 
@@ -17,6 +18,8 @@ export type Safety = {
   /** Latest unlock date among active LP locks (seconds) */
   lpUntil?: number;
   activeLocks: number;
+  /** True when LP locks exist but none of their pairs comes from a known DEX. */
+  unverifiedLpOnly?: boolean;
 };
 
 const ratio = (a: bigint, b: bigint) => (b > 0n ? Number((a * 1_000_000n) / b) / 1_000_000 : 0);
@@ -39,7 +42,10 @@ export async function tokenSafety(token: Address): Promise<Safety> {
   const now = Math.floor(Date.now() / 1000);
   const locks = res.map((r) => r.result as LockT | undefined).filter((l): l is LockT => !!l && !l.withdrawn && Number(l.unlockAt) > now);
   const own = locks.filter((l) => l.token.toLowerCase() === token.toLowerCase());
-  const lp = locks.filter((l) => l.isLP && l.token.toLowerCase() !== token.toLowerCase());
+  const lpAll = locks.filter((l) => l.isLP && l.token.toLowerCase() !== token.toLowerCase());
+  const checks = await verifyPairs(c, Array.from(new Set(lpAll.map((l) => l.token.toLowerCase()))) as Address[]);
+  // Only pairs from a known DEX count as liquidity; a fake pair contract could claim anything.
+  const lp = lpAll.filter((l) => checks.get(l.token.toLowerCase())?.verified);
 
   const byPair = new Map<string, { amount: bigint; until: number }>();
   for (const l of lp) {
@@ -71,5 +77,6 @@ export async function tokenSafety(token: Address): Promise<Safety> {
     lpUntil,
     nextUnlock: locks.length ? Math.min(...locks.map((l) => Number(l.unlockAt))) : undefined,
     activeLocks: locks.length,
+    unverifiedLpOnly: lpAll.length > 0 && lp.length === 0,
   };
 }

@@ -8,6 +8,7 @@ import { erc20Abi, isAddress, type Address } from "viem";
 import { contracts, elysium } from "@/lib/config";
 import { lockerAbi } from "@/lib/abis";
 import { countdown, fmtAmount, fmtDate, short } from "@/lib/format";
+import { useVerifiedPairs } from "@/lib/useVerifiedPairs";
 import { useMounted } from "@/lib/useMounted";
 
 const cid = elysium.id;
@@ -62,6 +63,7 @@ export function ExploreLocks() {
     ]),
     query: { enabled: lpTokens.length > 0 },
   });
+  const pairCheck = useVerifiedPairs(lpTokens);
   const underlying = useMemo(
     () => Array.from(new Set((pairs.data ?? []).map((r) => (r.result as string | undefined)?.toLowerCase()).filter(Boolean))) as Address[],
     [pairs.data],
@@ -89,6 +91,7 @@ export function ExploreLocks() {
     const sb = sym(b);
     return sa && sb ? `${sa}/${sb}` : undefined;
   };
+  const unverifiedPair = (t: string) => !pairCheck.loading && pairCheck.map.get(t.toLowerCase())?.verified === false;
 
   const now = mounted ? Date.now() / 1000 : 0;
   const needle = q.trim().toLowerCase();
@@ -185,6 +188,11 @@ export function ExploreLocks() {
                     </td>
                     <td>
                       <Link href={`/token/${l.token}`}>{pl ? `${pl} LP` : `${t.symbol ?? short(l.token)}${l.isLP ? " LP" : ""}`}</Link>
+                      {l.isLP && unverifiedPair(l.token) && (
+                        <span className="pill pill-warn" style={{ marginLeft: 6, padding: "2px 8px", fontSize: 11 }} title="This LP token's pair is not from a known DEX">
+                          Unverified pair
+                        </span>
+                      )}
                     </td>
                     <td className="mono">{fmtAmount(l.amount, t.decimals)}</td>
                     <td className="mono">{fmtDate(l.unlockAt)}</td>

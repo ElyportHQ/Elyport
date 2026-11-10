@@ -24,6 +24,9 @@ export async function GET(_req: Request, ctx: { params: Promise<{ address: strin
         label = `${s.symbol} locked`;
         value = `${pct(s.tokenLocked)} of supply`;
         ok = true;
+      } else if (s.unverifiedLpOnly) {
+        label = "Elyport";
+        value = "LP pair not verified";
       } else {
         label = "Elyport";
         value = "No active locks";

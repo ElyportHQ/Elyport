@@ -7,7 +7,7 @@ import { elysium, githubUrl, xUrl } from "@/lib/config";
 
 export function LiveBlock() {
   const { data } = useBlockNumber({ chainId: elysium.id, watch: true, query: { refetchInterval: 4000 } });
-  return <span className="mono">Elysium block #{data ? data.toLocaleString("en-US") : "…"}</span>;
+  return <span className="mono">{data ? `Elysium block #${data.toLocaleString("en-US")}` : "Elysium mainnet · chain 99901"}</span>;
 }
 
 /** Home uses the large glass footer inside its closing scene; app pages use this slim one. */

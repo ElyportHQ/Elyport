@@ -33,6 +33,8 @@ export default function FaqDoc() {
           ["Can I lock for my team's multisig?", "Yes. Set the multisig as the wallet that withdraws when you create the lock."],
           ["Why doesn't tranche mode accept my token?", "Tokens that take a fee on transfer can't be split exactly. Lock them with a single date instead."],
           ["Where do holders see my lock?", "On the lock page, the token page, Explore and the lock badge."],
+          ["Can I lock a Uniswap V3 or V4 position?", "Not yet. Only LP tokens (Uniswap V2 style pairs) and regular tokens can be locked today."],
+          ["Why does my LP lock say Unverified pair?", <>Its pair isn&apos;t from a DEX factory Elyport recognises, so it isn&apos;t counted as locked liquidity. See <a href="/docs/security">Security model</a>.</>],
         ]}
       />
 

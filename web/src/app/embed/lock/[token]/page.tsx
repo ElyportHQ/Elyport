@@ -30,7 +30,9 @@ export default async function EmbedLockPage({
   const decimals = data?.token.decimals ?? 18;
   const sum = data?.summary;
   const active = data ? data.locks.filter((l) => l.status === "locked").sort((a, b) => a.unlockAt - b.unlockAt) : [];
-  const bestLp = data?.liquidity.length ? data.liquidity.reduce((a, b) => (b.lockedPercent > a.lockedPercent ? b : a)) : undefined;
+  const verified = data?.liquidity.filter((p) => p.verified) ?? [];
+  const bestLp = verified.length ? verified.reduce((a, b) => (b.lockedPercent > a.lockedPercent ? b : a)) : undefined;
+  const unverified = new Set((data?.liquidity ?? []).filter((p) => !p.verified).map((p) => p.pair.toLowerCase()));
 
   return (
     <div className="ew" data-theme={theme} style={style}>
@@ -98,7 +100,7 @@ export default async function EmbedLockPage({
               <li key={l.id.toString()}>
                 <a href={l.url} target="_blank" rel="noreferrer">
                   <span>
-                    #{l.id.toString()} · {l.isLP ? "LP" : symbol}
+                    #{l.id.toString()} · {l.isLP ? (unverified.has(l.token.toLowerCase()) ? "LP (unverified pair)" : "LP") : symbol}
                   </span>
                   <b>
                     {amountText(l.amount, l.isLP ? 18 : decimals)} · {dateText(l.unlockAt)}

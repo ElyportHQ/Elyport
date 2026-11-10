@@ -3,6 +3,7 @@ import { erc20Abi, isAddress, type Address } from "viem";
 import { contracts, elysium, siteUrl } from "./config";
 import { lockerAbi, vestingAbi } from "./abis";
 import { elysiumClient } from "./og";
+import { verifyPairs } from "./verifyPairs";
 
 type LockT = { token: Address; owner: Address; amount: bigint; unlockAt: bigint; createdAt: bigint; isLP: boolean; withdrawn: boolean };
 type SchedT = {
@@ -178,13 +179,25 @@ export async function apiToken(token: Address) {
     pairMap.set(k, { amount: cur.amount + l.amount, until: Math.max(cur.until, l.unlockAt), locks: cur.locks + 1 });
   }
   const pairs = Array.from(pairMap.entries());
+  const checks = await verifyPairs(c, pairs.map(([p]) => p as Address));
   const sups = pairs.length
     ? await c.multicall({ contracts: pairs.map(([p]) => ({ address: p as Address, abi: erc20Abi, functionName: "totalSupply" as const })), allowFailure: true })
     : [];
   const liquidity = pairs.map(([pair, v], i) => {
     const supply = (sups[i]?.result as bigint | undefined) ?? 0n;
-    return { pair, lockedAmount: v.amount, pairSupply: supply, lockedPercent: Math.min(100, pct(v.amount, supply)), lockedUntil: v.until, locks: v.locks };
+    const chk = checks.get(pair.toLowerCase());
+    return {
+      pair,
+      dex: chk?.dex ?? null,
+      verified: !!chk?.verified,
+      lockedAmount: v.amount,
+      pairSupply: supply,
+      lockedPercent: Math.min(100, pct(v.amount, supply)),
+      lockedUntil: v.until,
+      locks: v.locks,
+    };
   });
+  const verifiedLiquidity = liquidity.filter((p) => p.verified);
 
   const liveSched = schedules.filter((s) => !s.cancelled);
   return {
@@ -193,7 +206,8 @@ export async function apiToken(token: Address) {
       activeLocks: active.length,
       supplyLockedAmount: ownAmount,
       supplyLockedPercent: meta.totalSupply ? Math.min(100, pct(ownAmount, meta.totalSupply)) : null,
-      bestLiquidityLockedPercent: liquidity.length ? Math.max(...liquidity.map((p) => p.lockedPercent)) : null,
+      /** Only pairs from a known DEX factory count here. */
+      bestLiquidityLockedPercent: verifiedLiquidity.length ? Math.max(...verifiedLiquidity.map((p) => p.lockedPercent)) : null,
       nextUnlock: active.length ? Math.min(...active.map((l) => l.unlockAt)) : null,
       vestingSchedules: schedules.length,
       vestingTotal: liveSched.reduce((a, s) => a + s.total, 0n),

@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 import { erc20Abi, type Address } from "viem";
 import { contracts, elysium, explorerAddress, siteUrl } from "@/lib/config";
 import { lockerAbi, vestingAbi } from "@/lib/abis";
 import { countdown, fmtAmount, fmtDate, short } from "@/lib/format";
 import { useMounted } from "@/lib/useMounted";
+import { useVerifiedPairs } from "@/lib/useVerifiedPairs";
 
 const cid = elysium.id;
 const now = () => Math.floor(Date.now() / 1000);
@@ -47,7 +49,9 @@ export function TokenView({ token }: { token: Address }) {
   const isOwn = (l: LockT) => l.token.toLowerCase() === token.toLowerCase();
   const ownLocks = lockList.filter((x) => isOwn(x.l));
   const lpLocks = lockList.filter((x) => !isOwn(x.l) && x.l.isLP);
-  const pairs = Array.from(new Set(lpLocks.map((x) => x.l.token.toLowerCase()))) as Address[];
+  const pairKey = Array.from(new Set(lpLocks.map((x) => x.l.token.toLowerCase()))).sort().join(",");
+  const pairs = useMemo(() => (pairKey ? (pairKey.split(",") as Address[]) : []), [pairKey]);
+  const pairCheck = useVerifiedPairs(pairs);
   const lpSup = useReadContracts({
     contracts: pairs.map((p) => ({ chainId: cid, address: p, abi: erc20Abi, functionName: "totalSupply" as const })),
     query: { enabled: pairs.length > 0 },
@@ -56,9 +60,12 @@ export function TokenView({ token }: { token: Address }) {
     const locked = lpLocks.filter((x) => x.l.token.toLowerCase() === p).reduce((a, x) => a + x.l.amount, 0n);
     const sup = lpSup.data?.[i]?.result as bigint | undefined;
     const share = sup && sup > 0n ? Math.min(100, Number((locked * 10_000n) / sup) / 100) : undefined;
-    return { pair: p, locked, share };
+    const chk = pairCheck.map.get(p);
+    return { pair: p, locked, share, verified: !!chk?.verified, dex: chk?.dex };
   });
-  const bestLp = pairStats.reduce<(typeof pairStats)[number] | undefined>((b, x) => (x.share !== undefined && (!b || (b.share ?? 0) < x.share) ? x : b), undefined);
+  // Only pairs from a known DEX count as locked liquidity.
+  const bestLp = pairStats.reduce<(typeof pairStats)[number] | undefined>((b, x) => (x.verified && x.share !== undefined && (!b || (b.share ?? 0) < x.share) ? x : b), undefined);
+  const hasUnverified = pairStats.some((p) => !p.verified) && !pairCheck.loading;
 
   const lockedTotal = ownLocks.reduce((a, x) => a + x.l.amount, 0n);
   const share = (v: bigint) => (supply && supply > 0n ? Math.min(100, Number((v * 10_000n) / supply) / 100) : 0);
@@ -75,7 +82,9 @@ export function TokenView({ token }: { token: Address }) {
         <div className="panel">
           <div className="eyebrow">Liquidity locked</div>
           <div style={{ fontSize: 34, fontWeight: 300 }}>{bestLp?.share !== undefined ? `${bestLp.share}%` : "None"}</div>
-          <div className="eyebrow">{bestLp ? `of the LP · pair ${short(bestLp.pair)}` : "No LP locked on Elyport"}</div>
+          <div className="eyebrow">
+            {bestLp ? `of the LP · ${bestLp.dex ?? "pair"} ${short(bestLp.pair)}` : hasUnverified ? "LP locks found, but no pair from a known DEX" : "No LP locked on Elyport"}
+          </div>
         </div>
         <div className="panel">
           <div className="eyebrow">Tokens locked</div>
@@ -118,7 +127,8 @@ export function TokenView({ token }: { token: Address }) {
           <div className="legend" style={{ marginTop: 16 }}>
             {pairStats.map((p) => (
               <span key={p.pair}>
-                LP {short(p.pair)}: <b>{p.share !== undefined ? `${p.share}%` : "…"}</b> locked
+                {p.verified ? `${p.dex} LP` : "LP"} {short(p.pair)}: <b>{p.share !== undefined ? `${p.share}%` : "…"}</b> locked
+                {!p.verified && !pairCheck.loading && <span className="pill pill-warn" style={{ marginLeft: 6, padding: "2px 8px", fontSize: 11 }}>Unverified pair</span>}
               </span>
             ))}
           </div>

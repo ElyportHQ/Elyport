@@ -22,6 +22,14 @@ const viemChains: Record<number, Chain> = { 1: mainnet, 8453: base, 42161: arbit
 /** Errors after which the deposit can never be delivered as-is, so it is refunded. */
 const REFUND_ON = new Set(["OverTxCap", "OverWalletCap", "OverDailyCap", "InsufficientStock", "TransferFailed", "ZeroAddress"]);
 const MAX_PER_RUN = 20;
+/** How many of the newest deposits each sweep looks at, per chain. Pending ones are found by id, not by block range. */
+const SCAN_DEPTH = BigInt(process.env.RELAYER_SCAN_DEPTH ?? "300");
+/** Blocks a deposit must be buried under before HYPE is sent, per source chain. */
+const CONFIRMATIONS: Record<number, bigint> = { 1: 3n, 8453: 10n, 42161: 20n, 4663: 10n, 56: 5n, 999: 5n };
+/** Must match ElyportRefuelDeposit.REFUND_DELAY. */
+const REFUND_DELAY = 24 * 3600;
+/** Stop delivering this long before the sender may self-refund, so a deposit is never both delivered and refunded. */
+const DELIVERY_CUTOFF = REFUND_DELAY - 4 * 3600;
 
 export type RelayResult = { chain: string; id: string; action: "dispensed" | "marked" | "refunded" | "skipped" | "error"; detail?: string };
 
@@ -88,18 +96,38 @@ async function processOne(ctx: Ctx, sc: NonNullable<ReturnType<typeof sourceClie
     const h = await wallet.writeContract({ address: deposit, abi: depositAbi, functionName: "markFulfilled", args: [[id], [elysiumTx]] });
     await pub.waitForTransactionReceipt({ hash: h });
   };
+  const refund = async (reason: string): Promise<RelayResult> => {
+    const h = await wallet.writeContract({ address: deposit, abi: depositAbi, functionName: "refund", args: [id] });
+    await pub.waitForTransactionReceipt({ hash: h });
+    return { ...tag, action: "refunded", detail: reason };
+  };
   try {
     const d = await pub.readContract({ address: deposit, abi: depositAbi, functionName: "getDeposit", args: [id] });
     if (d.status !== 1) return undefined; // not pending
 
-    const key = depositKey(src.id, deposit, id);
+    // Wait for confirmations: the deposit must already exist, unchanged, a few blocks back.
+    const latest = await pub.getBlockNumber();
+    const conf = CONFIRMATIONS[src.id] ?? 10n;
+    const settled = await pub
+      .readContract({ address: deposit, abi: depositAbi, functionName: "getDeposit", args: [id], blockNumber: latest > conf ? latest - conf : 0n })
+      .catch(() => undefined);
+    if (!settled || settled.status !== 1 || settled.sender !== d.sender || settled.amount !== d.amount || settled.recipient !== d.recipient) {
+      return { ...tag, action: "skipped", detail: "waiting for confirmations" };
+    }
+
+    const key = depositKey(src.id, deposit, id, d);
     const already = await ctx.elyPublic.readContract({ address: ctx.vault, abi: vaultAbi, functionName: "processed", args: [key] });
     if (already) {
       await markFulfilled("0x0000000000000000000000000000000000000000000000000000000000000000");
       return { ...tag, action: "marked" };
     }
 
+    // Close to the sender's own refund window: refund instead of racing it.
+    if (Math.floor(Date.now() / 1000) - Number(d.createdAt) > DELIVERY_CUTOFF) return await refund("too old to deliver safely");
+
     const amount = hypeFor(d.token, d.amount, src.id, src.usdc, ctx.prices, ctx.feeBps);
+    // The sender locked in a minimum when paying; if prices moved below it, refund instead of underpaying.
+    if (amount < d.minOut) return await refund("below the sender's minimum");
     let elyTx: Hash;
     try {
       elyTx = await ctx.elyWallet.writeContract({ address: ctx.vault, abi: vaultAbi, functionName: "dispense", args: [key, d.recipient, amount] });
@@ -107,11 +135,7 @@ async function processOne(ctx: Ctx, sc: NonNullable<ReturnType<typeof sourceClie
       if (r.status !== "success") throw new Error("dispense reverted");
     } catch (e) {
       const name = revertName(e);
-      if (name && REFUND_ON.has(name)) {
-        const h = await wallet.writeContract({ address: deposit, abi: depositAbi, functionName: "refund", args: [id] });
-        await pub.waitForTransactionReceipt({ hash: h });
-        return { ...tag, action: "refunded", detail: name };
-      }
+      if (name && REFUND_ON.has(name)) return await refund(name);
       throw e;
     }
     await markFulfilled(elyTx);
@@ -126,26 +150,59 @@ export async function relayDeposit(chainId: number, id: bigint): Promise<RelayRe
   const ctx = await context();
   const sc = sourceClients(chainId, ctx.account);
   if (!sc) throw new Error("Unsupported chain.");
-  return processOne(ctx, sc, id);
+  // Right after payment the deposit is usually a few blocks short of confirmed: keep checking
+  // for up to ~45 seconds so the user still gets HYPE quickly. Cron covers anything slower.
+  const until = Date.now() + 45_000;
+  for (;;) {
+    const r = await processOne(ctx, sc, id);
+    if (r?.action !== "skipped" || Date.now() > until) return r;
+    await new Promise((res) => setTimeout(res, 4000));
+  }
 }
 
-/** Sweeps recent deposits on every source chain. Called by cron as a safety net. */
+const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11" as const;
+
+/** Status of each deposit id: one multicall where Multicall3 exists, small batches of plain reads otherwise. */
+async function depositStatuses(sc: NonNullable<ReturnType<typeof sourceClients>>, ids: bigint[]): Promise<(number | undefined)[]> {
+  const calls = ids.map((id) => ({ address: sc.deposit, abi: depositAbi, functionName: "getDeposit" as const, args: [id] as const }));
+  try {
+    const r = await sc.pub.multicall({ contracts: calls, allowFailure: true, multicallAddress: MULTICALL3 });
+    return r.map((x) => (x.status === "success" ? Number((x.result as { status: number }).status) : undefined));
+  } catch {
+    const out: (number | undefined)[] = [];
+    for (let i = 0; i < calls.length; i += 20) {
+      const part = await Promise.all(calls.slice(i, i + 20).map((c) => sc.pub.readContract(c).then((d) => Number(d.status)).catch(() => undefined)));
+      out.push(...part);
+    }
+    return out;
+  }
+}
+
+/**
+ * Sweeps every source chain for pending deposits. Called by cron as a safety net.
+ * Deposits are found by id from the contract itself (newest SCAN_DEPTH), so a deposit is never
+ * missed because its block fell out of a log window, however long the relayer was down.
+ */
 export async function runRelayer(): Promise<RelayResult[]> {
   const ctx = await context();
-  const lookback = BigInt(process.env.RELAYER_LOOKBACK_BLOCKS ?? "3000");
   const results: RelayResult[] = [];
   for (const src of sourceChains) {
     const sc = sourceClients(src.id, ctx.account);
     if (!sc) continue;
-    const latest = await sc.pub.getBlockNumber();
-    const fromBlock = latest > lookback ? latest - lookback : 0n;
-    const logs = await sc.pub.getContractEvents({ address: sc.deposit, abi: depositAbi, eventName: "Deposited", fromBlock, toBlock: latest });
-    for (const log of logs) {
-      if (results.length >= MAX_PER_RUN) return results;
-      const id = log.args.id;
-      if (id === undefined) continue;
-      const r = await processOne(ctx, sc, id);
-      if (r) results.push(r);
+    try {
+      const count = await sc.pub.readContract({ address: sc.deposit, abi: depositAbi, functionName: "depositCount" });
+      const from = count > SCAN_DEPTH ? count - SCAN_DEPTH : 0n;
+      const ids: bigint[] = [];
+      for (let i = from; i < count; i++) ids.push(i);
+      const statuses = await depositStatuses(sc, ids);
+      const pending = ids.filter((_, i) => statuses[i] === 1);
+      for (const id of pending) {
+        if (results.length >= MAX_PER_RUN) return results;
+        const r = await processOne(ctx, sc, id);
+        if (r) results.push(r);
+      }
+    } catch (e) {
+      results.push({ chain: src.name, id: "-", action: "error", detail: (e as Error).message?.slice(0, 200) });
     }
   }
   return results;

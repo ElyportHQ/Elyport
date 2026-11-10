@@ -21,7 +21,10 @@ export default function ExploreDoc() {
           ["Newest / Unlocking soon", "Sort order"],
         ]}
       />
-      <p>LP locks show the pair they belong to, for example HYPE / TOKEN, so you know which market is protected.</p>
+      <p>
+        LP locks show the pair they belong to, for example HYPE / TOKEN, so you know which market is protected. Pairs that don&apos;t
+        come from a known DEX get an <strong>Unverified pair</strong> label and don&apos;t count as locked liquidity.
+      </p>
 
       <H2 id="token-page">Token pages</H2>
       <p>

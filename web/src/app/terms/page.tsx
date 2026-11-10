@@ -24,6 +24,16 @@ export default function Terms() {
       <p>Elyport is an independent tool. It is not affiliated with, endorsed by or operated by Kinetiq or Elysium.</p>
       <h2 id="restrictions">Restrictions</h2>
       <p>You must not use Elyport where doing so breaks the law that applies to you, including sanctions laws.</p>
+      <h2 id="contact">Contact</h2>
+      <p>
+        Questions: <a href="https://x.com/ElyportHQ" target="_blank" rel="noreferrer">@ElyportHQ on X</a> or a{" "}
+        <a href="https://github.com/ElyportHQ/Elyport/issues" target="_blank" rel="noreferrer">GitHub issue</a>. Security
+        problems: report privately through{" "}
+        <a href="https://github.com/ElyportHQ/Elyport/security/advisories/new" target="_blank" rel="noreferrer">
+          GitHub vulnerability reporting
+        </a>
+        , not in public.
+      </p>
     </LegalPage>
   );
 }
