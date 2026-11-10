@@ -41,13 +41,13 @@ jobs:
             forge verify-contract "$1" "$2" --chain-id 99901 --verifier sourcify \
               --constructor-args "$3" || echo "::warning::Sourcify verification failed for $2"
           }
-          v 0x7868e66c72df8dd0827f93e3674e53f72f8939cc src/ElyportLocker.sol:ElyportLocker \
+          v 0x402073014Aac6a658c7eb23ED7F8c39C8D1ee72b src/ElyportLocker.sol:ElyportLocker \
             "$(cast abi-encode 'c(address,address,uint256)' $OWNER $FEE_RECIPIENT 133000000000000000)"
-          v 0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e src/ElyportVesting.sol:ElyportVesting \
+          v 0x33e318a397699A1d55b008089D0d4F11A959c855 src/ElyportVesting.sol:ElyportVesting \
             "$(cast abi-encode 'c(address,address,uint256)' $OWNER $FEE_RECIPIENT 133000000000000000)"
-          v 0x7ba7b360771b23277991f29488afe8827d2bce33 src/ElyportDrop.sol:ElyportDrop \
+          v 0xF7633D1033020314BCb5AfDC7864b50f30B493D0 src/ElyportDrop.sol:ElyportDrop \
             "$(cast abi-encode 'c(address,address,uint256)' $OWNER $FEE_RECIPIENT 40000000000000000)"
-          v 0xa43e860ec638b039cb926e98590852c2fdcbcf65 src/ElyportRefuelVault.sol:ElyportRefuelVault \
+          v 0x259EB6eD99225907cB839C73FD2556CF6cBd9456 src/ElyportRefuelVault.sol:ElyportRefuelVault \
             "$(cast abi-encode 'c(address,address,uint256,uint256,uint256)' $OWNER $RELAYER 160000000000000000 300000000000000000 1400000000000000000)"
 
   sources:
@@ -57,12 +57,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: Ethereum, chain_id: 1, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", nmin: "450000000000000", nmax: "5000000000000000" }
-          - { name: Base, chain_id: 8453, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", nmin: "450000000000000", nmax: "5000000000000000" }
-          - { name: Arbitrum, chain_id: 42161, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", nmin: "450000000000000", nmax: "5000000000000000" }
-          - { name: Robinhood Chain, chain_id: 4663, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "", nmin: "450000000000000", nmax: "5000000000000000" }
-          - { name: BNB Chain, chain_id: 56, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "", nmin: "1400000000000000", nmax: "15000000000000000" }
-          - { name: HyperEVM, chain_id: 999, address: "0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e", usdc: "", nmin: "13000000000000000", nmax: "140000000000000000" }
+          - { name: Ethereum, chain_id: 1, address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", nmin: "450000000000000", nmax: "5000000000000000" }
+          - { name: Base, chain_id: 8453, address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", nmin: "450000000000000", nmax: "5000000000000000" }
+          - { name: Arbitrum, chain_id: 42161, address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", nmin: "450000000000000", nmax: "5000000000000000" }
+          - { name: Robinhood Chain, chain_id: 4663, address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", usdc: "", nmin: "450000000000000", nmax: "5000000000000000" }
+          - { name: BNB Chain, chain_id: 56, address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", usdc: "", nmin: "1400000000000000", nmax: "15000000000000000" }
+          - { name: HyperEVM, chain_id: 999, address: "0xD5C3e28D683B948Ff8e96AD12f04986EaA13127A", usdc: "", nmin: "13000000000000000", nmax: "140000000000000000" }
     defaults:
       run:
         working-directory: contracts

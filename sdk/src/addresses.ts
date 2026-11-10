@@ -7,22 +7,22 @@ export type ElyportAddresses = {
   refuelVault: Address;
 };
 
-/** Elyport v2 contracts on Elysium mainnet (chain 99901). */
+/** Elyport v3 contracts on Elysium mainnet (chain 99901). */
 export const ELYPORT_ADDRESSES: ElyportAddresses = {
-  locker: "0x7868e66c72df8dd0827f93e3674e53f72f8939cc",
-  vesting: "0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e",
-  drop: "0x7ba7b360771b23277991f29488afe8827d2bce33",
-  refuelVault: "0xa43e860ec638b039cb926e98590852c2fdcbcf65",
+  locker: "0x402073014Aac6a658c7eb23ED7F8c39C8D1ee72b",
+  vesting: "0x33e318a397699A1d55b008089D0d4F11A959c855",
+  drop: "0xF7633D1033020314BCb5AfDC7864b50f30B493D0",
+  refuelVault: "0x259EB6eD99225907cB839C73FD2556CF6cBd9456",
 };
 
 /** Instant Refuel deposit contracts on source chains, by chain id. */
 export const REFUEL_DEPOSITS: Record<number, Address> = {
-  1: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39",
-  8453: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39",
-  42161: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39",
-  4663: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39",
-  56: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39",
-  999: "0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e",
+  1: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4",
+  8453: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4",
+  42161: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4",
+  4663: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4",
+  56: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4",
+  999: "0xD5C3e28D683B948Ff8e96AD12f04986EaA13127A",
 };
 
 /** Seconds in one vesting "month" step. */

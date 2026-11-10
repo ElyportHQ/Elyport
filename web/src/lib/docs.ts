@@ -83,12 +83,12 @@ export function docMeta(href: string) {
 
 /** Public deposit contracts for Instant Refuel on each source chain. */
 export const depositContracts = [
-  { chain: "Ethereum", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", explorer: "https://etherscan.io/address/" },
-  { chain: "Base", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", explorer: "https://basescan.org/address/" },
-  { chain: "Arbitrum", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", explorer: "https://arbiscan.io/address/" },
-  { chain: "Robinhood Chain", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", explorer: "https://robinhoodchain.blockscout.com/address/" },
-  { chain: "BNB Chain", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", explorer: "https://bscscan.com/address/" },
-  { chain: "HyperEVM", address: "0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e", explorer: "https://hyperevmscan.io/address/" },
+  { chain: "Ethereum", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://etherscan.io/address/" },
+  { chain: "Base", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://basescan.org/address/" },
+  { chain: "Arbitrum", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://arbiscan.io/address/" },
+  { chain: "Robinhood Chain", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://robinhoodchain.blockscout.com/address/" },
+  { chain: "BNB Chain", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://bscscan.com/address/" },
+  { chain: "HyperEVM", address: "0xD5C3e28D683B948Ff8e96AD12f04986EaA13127A", explorer: "https://hyperevmscan.io/address/" },
 ];
 
 export const roles = {
