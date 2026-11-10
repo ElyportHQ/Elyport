@@ -1,7 +1,7 @@
-import { defineChain } from "viem";
+import { defineChain, type Chain } from "viem";
 
 /** Elysium mainnet: Kinetiq's Layer 2 for Hyperliquid, with HYPE as gas. */
-export const elysium = defineChain({
+export const elysium: Chain = defineChain({
   id: 99901,
   name: "Elysium",
   nativeCurrency: { name: "HYPE", symbol: "HYPE", decimals: 18 },

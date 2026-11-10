@@ -1,7 +1,18 @@
 export { elysium } from "./chain.js";
 export { ELYPORT_ADDRESSES, REFUEL_DEPOSITS, MONTH, LIMITS, type ElyportAddresses } from "./addresses.js";
 export { lockerAbi, vestingAbi, dropAbi, vaultAbi, depositAbi } from "./abis.js";
-export { createElyport, type Elyport, type ElyportOptions, type Lock, type Schedule, type Recipient } from "./client.js";
+export {
+  createElyport,
+  type Elyport,
+  type ElyportOptions,
+  type Lock,
+  type Schedule,
+  type Recipient,
+  type Time,
+  type CreateLockParams,
+  type CreateTranchesParams,
+  type CreateVestingParams,
+} from "./client.js";
 export {
   createElyportApi,
   ElyportApiError,

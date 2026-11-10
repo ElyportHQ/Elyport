@@ -5,6 +5,7 @@ import {
   parseEventLogs,
   type Account,
   type Address,
+  type Chain,
   type Hash,
   type PublicClient,
   type TransactionReceipt,
@@ -39,7 +40,67 @@ export type Schedule = {
 };
 
 export type Recipient = { address: Address; amount: bigint };
-type Time = number | bigint | Date;
+/** Unix seconds or a Date. */
+export type Time = number | bigint | Date;
+
+export type CreateLockParams = { token: Address; amount: bigint; unlockAt: Time; owner?: Address; isLP?: boolean; note?: string };
+export type CreateTranchesParams = { token: Address; tranches: { amount: bigint; unlockAt: Time }[]; owner?: Address; isLP?: boolean; note?: string };
+export type CreateVestingParams = {
+  token: Address;
+  recipients: Recipient[];
+  start: Time;
+  /** Seconds after start before anything unlocks. */
+  cliff: number | bigint;
+  /** Total length in seconds. */
+  duration: number | bigint;
+  /** "linear" releases every second, "monthly" in 30-day steps. Default "linear". */
+  release?: "linear" | "monthly";
+  cancellable?: boolean;
+};
+
+export interface Elyport {
+  chain: Chain;
+  addresses: ElyportAddresses;
+  publicClient: PublicClient;
+  fees: {
+    lock(user?: Address): Promise<bigint>;
+    vesting(user?: Address): Promise<bigint>;
+    drop(user?: Address): Promise<bigint>;
+  };
+  locks: {
+    count(): Promise<bigint>;
+    get(id: bigint): Promise<Lock>;
+    idsByToken(token: Address): Promise<readonly bigint[]>;
+    idsByOwner(owner: Address): Promise<readonly bigint[]>;
+    create(p: CreateLockParams): Promise<Hash>;
+    createTranches(p: CreateTranchesParams): Promise<Hash>;
+    extend(id: bigint, unlockAt: Time): Promise<Hash>;
+    topUp(id: bigint, amount: bigint): Promise<Hash>;
+    transfer(id: bigint, newOwner: Address): Promise<Hash>;
+    withdraw(id: bigint): Promise<Hash>;
+    idsFromReceipt(receipt: TransactionReceipt): bigint[];
+  };
+  vesting: {
+    count(): Promise<bigint>;
+    get(id: bigint): Promise<Schedule>;
+    claimable(id: bigint): Promise<bigint>;
+    vestedAt(id: bigint, at: Time): Promise<bigint>;
+    idsByToken(token: Address): Promise<readonly bigint[]>;
+    idsByRecipient(wallet: Address): Promise<readonly bigint[]>;
+    idsByCreator(wallet: Address): Promise<readonly bigint[]>;
+    create(p: CreateVestingParams): Promise<Hash>;
+    claim(id: bigint): Promise<Hash>;
+    cancel(id: bigint): Promise<Hash>;
+    transfer(id: bigint, newRecipient: Address): Promise<Hash>;
+    idsFromReceipt(receipt: TransactionReceipt): bigint[];
+  };
+  drop: {
+    native(recipients: Recipient[]): Promise<Hash>;
+    token(token: Address, recipients: Recipient[]): Promise<Hash>;
+  };
+  /** Wait for a transaction and throw if it reverted. */
+  wait(hash: Hash): Promise<TransactionReceipt>;
+}
 
 export type ElyportOptions = {
   /** Reads go through this client. Defaults to a public Elysium RPC client. */
@@ -64,7 +125,7 @@ const sum = (xs: readonly bigint[]) => xs.reduce((a, b) => a + b, 0n);
  * const receipt = await ely.wait(hash);
  * ```
  */
-export function createElyport(opts: ElyportOptions = {}) {
+export function createElyport(opts: ElyportOptions = {}): Elyport {
   const addresses: ElyportAddresses = { ...ELYPORT_ADDRESSES, ...opts.addresses };
   const pc: PublicClient = opts.publicClient ?? (createPublicClient({ chain: elysium, transport: http() }) as PublicClient);
   const autoApprove = opts.autoApprove ?? true;
@@ -107,7 +168,7 @@ export function createElyport(opts: ElyportOptions = {}) {
     idsByOwner: (owner: Address) => pc.readContract({ address: addresses.locker, abi: lockerAbi, functionName: "lockIdsByOwner", args: [owner] }),
 
     /** Lock tokens until one date. Approves first when needed. */
-    async create(p: { token: Address; amount: bigint; unlockAt: Time; owner?: Address; isLP?: boolean; note?: string }): Promise<Hash> {
+    async create(p: CreateLockParams): Promise<Hash> {
       const { wc, account } = signer();
       await ensureAllowance(p.token, addresses.locker, p.amount);
       const value = await fees.lock(account.address);
@@ -123,7 +184,7 @@ export function createElyport(opts: ElyportOptions = {}) {
     },
 
     /** Lock one token in up to 20 tranches with their own unlock dates, in one transaction. */
-    async createTranches(p: { token: Address; tranches: { amount: bigint; unlockAt: Time }[]; owner?: Address; isLP?: boolean; note?: string }): Promise<Hash> {
+    async createTranches(p: CreateTranchesParams): Promise<Hash> {
       const { wc, account } = signer();
       const amounts = p.tranches.map((t) => t.amount);
       await ensureAllowance(p.token, addresses.locker, sum(amounts));
@@ -182,15 +243,7 @@ export function createElyport(opts: ElyportOptions = {}) {
      * Create schedules for up to 100 recipients in one transaction.
      * `cliff` and `duration` are in seconds; `release` is "linear" (every second) or "monthly" (30-day steps).
      */
-    async create(p: {
-      token: Address;
-      recipients: Recipient[];
-      start: Time;
-      cliff: number | bigint;
-      duration: number | bigint;
-      release?: "linear" | "monthly";
-      cancellable?: boolean;
-    }): Promise<Hash> {
+    async create(p: CreateVestingParams): Promise<Hash> {
       const { wc, account } = signer();
       const amounts = p.recipients.map((r) => r.amount);
       await ensureAllowance(p.token, addresses.vesting, sum(amounts));
@@ -289,4 +342,3 @@ export function createElyport(opts: ElyportOptions = {}) {
   };
 }
 
-export type Elyport = ReturnType<typeof createElyport>;
