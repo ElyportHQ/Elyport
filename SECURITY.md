@@ -10,6 +10,30 @@ Do not open a public issue. Include the contract or page, the steps to reproduce
 
 We aim to acknowledge reports within 72 hours.
 
+## Bug bounty
+
+Elyport pays for valid, previously unknown vulnerabilities reported privately through the link above.
+
+| Severity | Example | Reward |
+| --- | --- | --- |
+| Critical | Anyone other than the owner/recipient can take locked tokens, vested tokens, refuel deposits or the vault stock | up to $5,000 |
+| High | Funds can be frozen permanently, or a lock can be shortened | up to $1,500 |
+| Medium | A refuel can be delivered twice, or a user can be made to receive less than their minimum | up to $500 |
+| Low | Wrong data shown in a way that could mislead users (badge, API, widgets) | up to $100 |
+
+Rules:
+- Report privately and give us a reasonable time to fix before any disclosure.
+- Test only on a local fork or testnet. Do not touch other users' funds, run phishing or social engineering, or overload
+  the site or RPCs.
+- Issues already listed in `audits/2026-11-internal-review.md` or caused by a compromised owner or relayer key are out of
+  scope.
+- Rewards are paid in USDC or HYPE from the Elyport treasury. Amount depends on impact and report quality; the first
+  valid report of an issue wins.
+
+## Reviews
+
+- [Internal security review, November 2026](audits/2026-11-internal-review.md) (not an independent audit).
+
 ## Scope
 
 - `contracts/src/*` deployed by Elyport

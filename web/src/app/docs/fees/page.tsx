@@ -39,9 +39,22 @@ export default function FeesDoc() {
         be announced on X when it starts.
       </p>
 
+      <H2 id="caps">Hard caps</H2>
+      <p>The owner can change fees, but the contracts refuse anything above a fixed ceiling written into their code:</p>
+      <SpecTable
+        head={["Contract", "Fee today", "Can never exceed"]}
+        rows={[
+          ["Locker", "0.133 HYPE", "1 HYPE"],
+          ["Vesting", "0.133 HYPE", "1 HYPE"],
+          ["Gas Drop", "0.04 HYPE", "0.5 HYPE"],
+          ["Refuel vault, per payment", "0.16 HYPE", "1 HYPE"],
+          ["Refuel vault, per wallet per day", "0.3 HYPE", "3 HYPE"],
+          ["Refuel vault, per day", "1.4 HYPE", "50 HYPE"],
+        ]}
+      />
+
       <Callout kind="note">
-        Fees can be changed by the contract owner, but a change never touches existing locks or vesting. The app always reads the
-        live fee before you sign.
+        A fee change never touches existing locks or vesting. The app always reads the live fee before you sign.
       </Callout>
     </DocPage>
   );

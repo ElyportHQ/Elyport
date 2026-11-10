@@ -41,8 +41,8 @@ export default function GasDropDoc() {
 
       <H2 id="refused">When a wallet refuses HYPE</H2>
       <p>
-        Some contracts cannot receive HYPE. Instead of failing the whole batch, that wallet&apos;s share is sent back to you and
-        the rest of the drop goes through.
+        Each wallet gets up to 60,000 gas to receive HYPE, enough for smart-contract wallets such as Safe. If a wallet still
+        refuses, that wallet&apos;s share is sent back to you and the rest of the drop goes through. The batch fee is still charged.
       </p>
 
       <Callout kind="tip">

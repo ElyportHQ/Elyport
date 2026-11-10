@@ -30,12 +30,15 @@ export default function RefuelDoc() {
 
       <H2 id="instant">How Instant works</H2>
       <Steps>
-        <Step title="Pick a chain and an amount">Choose $1, $3, $5 or $10. You see the HYPE you will receive before you pay.</Step>
+        <Step title="Pick a chain and an amount">
+          Choose $1, $3, $5 or $10. You see the HYPE you will receive, and the minimum you are guaranteed (3% below the quote).
+        </Step>
         <Step title="Pay into the deposit contract">
           Your payment goes to Elyport&apos;s public deposit contract on that chain, with your Elysium address as the recipient.
         </Step>
         <Step title="Receive HYPE on Elysium">
-          A relayer sees the confirmed payment and sends HYPE from the refuel vault on Elysium. Your receipt shows both transactions.
+          Once your payment has a few block confirmations, a relayer sends HYPE from the refuel vault on Elysium. Your receipt shows
+          both transactions.
         </Step>
       </Steps>
 
@@ -53,12 +56,25 @@ export default function RefuelDoc() {
         ]}
       />
 
-      <H2 id="refunds">Refunds</H2>
-      <p>
-        If a payment cannot be delivered, for example because the HYPE stock is empty or a daily limit is reached, it is refunded
-        on the chain you paid from. The money comes straight back out of the deposit contract: pending payments are reserved
-        there and the owner cannot sweep them, so a refund never depends on Elyport&apos;s HYPE stock.
-      </p>
+      <H2 id="refunds">Refunds and guarantees</H2>
+      <ul>
+        <li>
+          <strong>Minimum locked in.</strong> When you pay, the least HYPE you accept is written into the deposit. If prices move
+          and the relayer can&apos;t deliver at least that, you are refunded instead.
+        </li>
+        <li>
+          <strong>Automatic refunds.</strong> If a payment can&apos;t be delivered (stock empty, a limit reached), the relayer
+          refunds it on the chain you paid from.
+        </li>
+        <li>
+          <strong>Refund it yourself.</strong> If a payment is still pending after 24 hours, you can take it back from{" "}
+          <strong>Your refuels</strong> on the Refuel page, even if Refuel is paused. No one else can.
+        </li>
+        <li>
+          <strong>Pending money is ring-fenced.</strong> Pending payments are reserved in the deposit contract and the owner
+          cannot sweep them.
+        </li>
+      </ul>
 
       <Callout kind="warn" title="Limits keep it safe">
         Instant refuels are capped per transaction, per wallet per day and in total per day. The vault holds only a small working

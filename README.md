@@ -164,6 +164,11 @@ and protected by `CRON_SECRET`. The relayer wallet needs HYPE on Elysium and nat
 
 </details>
 
+## Security
+
+- [Internal security review (November 2026)](audits/2026-11-internal-review.md): 0 critical, 0 high; not an independent audit.
+- Bug bounty up to $5,000 for critical issues. Report privately, see [SECURITY.md](SECURITY.md).
+
 ## License
 
 - **App and tooling** (`web/`, workflows, docs): [Business Source License 1.1](LICENSE). Free to read, audit, run and test;

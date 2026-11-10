@@ -12,9 +12,20 @@
 - **Prices** from CoinGecko, DefiLlama and Hyperliquid, median per asset; quoting stops if sources disagree by >3%.
 - **Rate limits** on `/api/refuel/process` (with per-deposit dedupe) and `/api/v1`.
 
-### Contracts v3 (code and tests; not deployed yet)
+### Contracts v3 (deployed 2026-11-10)
 - Hard fee caps (Locker 1, Vesting 1, Drop 0.5 HYPE), vault cap ceilings (1 / 3 / 50 HYPE), sender self-refund after
   24 hours (works while paused), `minOut` recorded with each refuel deposit, 60k gas per Gas Drop HYPE recipient.
+- Elysium: Locker `0x402073014Aac6a658c7eb23ED7F8c39C8D1ee72b`, Vesting `0x33e318a397699A1d55b008089D0d4F11A959c855`,
+  Drop `0xF7633D1033020314BCb5AfDC7864b50f30B493D0`, Vault `0x259EB6eD99225907cB839C73FD2556CF6cBd9456`.
+- Deposits: `0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4` (Ethereum, Base, Arbitrum, Robinhood Chain, BNB Chain),
+  `0xD5C3e28D683B948Ff8e96AD12f04986EaA13127A` (HyperEVM). v2 contracts were never used and are retired.
+
+### Security programme
+- Internal security review of the v3 contracts (`audits/2026-11-internal-review.md`) with fuzzed property tests.
+- Bug bounty: up to $5,000 for critical issues (SECURITY.md, docs).
+
+### SDK
+- `@elyport/sdk` 0.2.0 points at the v3 contracts and the v3 deposit ABI.
 
 ### Other
 - Terms list contact channels; docs cover the owner wallet, LP verification and known limits; footer shows the network

@@ -15,7 +15,7 @@ export default function ContractsDoc() {
   ] as const;
 
   return (
-    <DocPage href="/docs/contracts" minutes={2} lead="Ten contracts, all open source and verified on their explorers. Always check you are interacting with these addresses.">
+    <DocPage href="/docs/contracts" minutes={2} lead="Ten v3 contracts, all open source and verified on their explorers. Always check you are interacting with these addresses.">
       <H2 id="elysium">On Elysium</H2>
       <SpecTable
         head={["Contract", "Address", "Role"]}
