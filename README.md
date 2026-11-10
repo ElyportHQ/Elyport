@@ -73,6 +73,17 @@ Instant refuels are capped per transaction, per wallet per day and per day. Larg
 | `ElyportRefuelVault` | Elysium | Holds the HYPE stock. Relayer-only payouts with caps and pause |
 | `ElyportRefuelDeposit` | Source chains | Takes USDC or native payments. Refundable until fulfilled |
 
+### Mainnet addresses
+
+| Contract | Chain | Address |
+| --- | --- | --- |
+| `ElyportLocker` | Elysium | [`0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39`](https://elysium.kinetiq.xyz/explorer/address/0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39) |
+| `ElyportVesting` | Elysium | [`0xb5cedd59dd57d9145ff6d5fca3fb171304f055f7`](https://elysium.kinetiq.xyz/explorer/address/0xb5cedd59dd57d9145ff6d5fca3fb171304f055f7) |
+| `ElyportDrop` | Elysium | [`0x9e5dc700de34a441e1d0b74fc88d1b1f666ff9b4`](https://elysium.kinetiq.xyz/explorer/address/0x9e5dc700de34a441e1d0b74fc88d1b1f666ff9b4) |
+| `ElyportRefuelVault` | Elysium | [`0xa43e860ec638b039cb926e98590852c2fdcbcf65`](https://elysium.kinetiq.xyz/explorer/address/0xa43e860ec638b039cb926e98590852c2fdcbcf65) |
+| `ElyportRefuelDeposit` | Ethereum, Base, Arbitrum, Robinhood Chain, BNB Chain | `0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39` |
+| `ElyportRefuelDeposit` | HyperEVM | `0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e` |
+
 Built on OpenZeppelin v5 (`Ownable2Step`, `ReentrancyGuard`, `Pausable`, `SafeERC20`). Fees are flat amounts in HYPE, forwarded straight to the fee recipient.
 
 | Action | Fee |
