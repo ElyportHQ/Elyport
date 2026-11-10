@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- **SEO for lock and token pages:** titles and descriptions read from the chain ("$EPP402 lock #4: locked until
+  Dec 10, 2026"), matching link-preview text, and every lock and locked token listed in the sitemap.
 - **Lock prompt on token pages** with no supply locked: "Dev of $X? Lock your dev buy in a minute" opens the Locker
   with the token filled in (`/lock?token=0x…&type=token`), and holders can ask the dev on X in one click.
 - The Locker's "Recent on Elysium" list shows tickers and lock numbers instead of raw addresses.

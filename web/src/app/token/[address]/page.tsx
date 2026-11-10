@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import { isAddress, type Address } from "viem";
 import { getMontraLaunch } from "@/lib/montra";
 import { TokenView } from "./TokenView";
+import { tokenText, pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ address: string }> }): Promise<Metadata> {
   const { address } = await params;
-  return { title: `Token ${address.slice(0, 6)}…${address.slice(-4)}`, description: "Locks and vesting for this token on Elyport." };
+  const t = await tokenText(address);
+  return t ? pageMeta(t) : { title: `Token ${address.slice(0, 6)}…${address.slice(-4)}`, description: "Locks and vesting for this token on Elyport." };
 }
 
 export default async function TokenPage({ params }: { params: Promise<{ address: string }> }) {

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LockView } from "./LockView";
+import { lockText, pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Lock #${id}`, description: `Public, verifiable lock #${id} on Elyport.` };
+  const t = await lockText(id);
+  return t ? pageMeta(t) : { title: `Lock #${id}`, description: `Public, verifiable lock #${id} on Elyport.` };
 }
 
 export default async function LockDetailPage({ params }: { params: Promise<{ id: string }> }) {
