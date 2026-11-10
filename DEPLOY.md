@@ -7,6 +7,20 @@ smoke test in step 5 with tiny amounts, and only then raise the caps and top up 
 
 > Never paste a private key into chat, an issue, or a commit. Keys go only in your own terminal and in Vercel's encrypted env vars.
 
+## Option A: one-click deploy from GitHub Actions
+
+1. Fund the wallets (table below).
+2. Repo → Settings → Secrets and variables → Actions → **New repository secret**:
+   name `DEPLOYER_PRIVATE_KEY`, value = the **owner** wallet's private key.
+3. Repo → Actions → **Deploy contracts** → Run workflow → target `all`, confirm `DEPLOY`.
+4. The run summary lists every address as a ready-to-paste env line for Vercel.
+5. **Delete the secret** right after the run.
+
+The workflow (`.github/workflows/deploy.yml`) has the owner, fee recipient, relayer, fees and launch caps
+built in, runs the test suite first, and deploys the deposit contracts one chain at a time.
+
+## Option B: deploy from your own terminal
+
 ## 0. Wallets
 
 | Wallet | Holds | Used for |

@@ -1,0 +1,228 @@
+name: Deploy contracts
+
+# Manual mainnet deploy. Runs only when started by hand from the Actions tab.
+# Needs the secret DEPLOYER_PRIVATE_KEY (the OWNER wallet's key), stored as a repository
+# or "mainnet" environment secret. The key never appears in logs. Delete the secret after
+# the deploy is done.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "What to deploy"
+        required: true
+        default: all
+        type: choice
+        options: [all, elysium, sources, ethereum, base, arbitrum, robinhood, bsc, hyperevm]
+      confirm:
+        description: 'Type DEPLOY to confirm a mainnet deploy'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-contracts
+  cancel-in-progress: false
+
+env:
+  OWNER: "0x90D772A278F559853524C4803A27ba51324638dc"
+  FEE_RECIPIENT: "0xb3A4886c9F42Dd34F65a1B0DA7A3a7e3b0F72014"
+  RELAYER: "0x48Ee3081A156D0713c86C0a3360bABb07b823dB2"
+  FOUNDRY_PROFILE: default
+
+jobs:
+  check:
+    name: Confirm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require confirmation
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          if [ "$CONFIRM" != "DEPLOY" ]; then
+            echo "::error::Type DEPLOY in the confirm box to run a mainnet deploy."
+            exit 1
+          fi
+
+  elysium:
+    name: Elysium (Locker, Vesting, Drop, Vault)
+    needs: check
+    if: inputs.target == 'all' || inputs.target == 'elysium'
+    runs-on: ubuntu-latest
+    environment: mainnet
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC_URL: ${{ vars.ELYSIUM_RPC_URL || 'https://rpc.elysium.kinetiq.xyz' }}
+      # Flat fees in HYPE wei, set from HYPE ≈ $75 on 10 Nov 2026. The owner can change them later.
+      LOCK_FEE_WEI: ${{ vars.LOCK_FEE_WEI || '133000000000000000' }} # 0.133 HYPE ≈ $10
+      VESTING_FEE_WEI: ${{ vars.VESTING_FEE_WEI || '133000000000000000' }} # 0.133 HYPE ≈ $10
+      DROP_FEE_WEI: ${{ vars.DROP_FEE_WEI || '40000000000000000' }} # 0.04 HYPE ≈ $3
+      # Guarded launch caps; raise later with setCaps.
+      VAULT_MAX_PER_TX_WEI: ${{ vars.VAULT_MAX_PER_TX_WEI || '160000000000000000' }} # 0.16 HYPE ≈ $12
+      VAULT_MAX_PER_WALLET_DAY_WEI: ${{ vars.VAULT_MAX_PER_WALLET_DAY_WEI || '300000000000000000' }} # 0.3 HYPE ≈ $22
+      VAULT_MAX_PER_DAY_WEI: ${{ vars.VAULT_MAX_PER_DAY_WEI || '1400000000000000000' }} # 1.4 HYPE ≈ $105
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Install libraries
+        run: |
+          forge install foundry-rs/forge-std@v1.9.4 --no-git
+          forge install OpenZeppelin/openzeppelin-contracts@v5.1.0 --no-git
+      - name: Test
+        run: forge test
+      - name: Deploy
+        env:
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+        run: |
+          if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then echo "::error::Secret DEPLOYER_PRIVATE_KEY is not set."; exit 1; fi
+          forge script script/Deploy.s.sol:DeployElysium \
+            --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$OWNER" \
+            --broadcast --slow --gas-estimate-multiplier 200
+      - name: Summary
+        if: always()
+        run: |
+          f=$(ls broadcast/Deploy.s.sol/*/run-latest.json 2>/dev/null | head -1)
+          [ -n "$f" ] || exit 0
+          {
+            echo "### Elysium"
+            echo '```'
+            jq -r '.transactions[] | select(.transactionType=="CREATE") |
+              "NEXT_PUBLIC_" + ({"ElyportLocker":"LOCKER","ElyportVesting":"VESTING","ElyportDrop":"DROP","ElyportRefuelVault":"REFUEL_VAULT"}[.contractName]) + "_ADDRESS=" + .contractAddress' "$f"
+            b=$(jq -r '.receipts[0].blockNumber // empty' "$f")
+            [ -n "$b" ] && echo "NEXT_PUBLIC_DEPLOY_BLOCK=$((b))"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: broadcast-elysium
+          path: contracts/broadcast
+          if-no-files-found: ignore
+
+  sources:
+    name: Deposit on ${{ matrix.name }}
+    needs: [check, elysium]
+    if: always() && needs.check.result == 'success' && inputs.target != 'elysium'
+    runs-on: ubuntu-latest
+    environment: mainnet
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - key: ethereum
+            name: Ethereum
+            chain_id: 1
+            rpc: https://ethereum-rpc.publicnode.com
+            usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+            native_min: "450000000000000" # 0.00045 ETH ≈ $1
+            native_max: "5000000000000000" # 0.005 ETH ≈ $10.6
+            multiplier: 130
+          - key: base
+            name: Base
+            chain_id: 8453
+            rpc: https://mainnet.base.org
+            usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+            native_min: "450000000000000"
+            native_max: "5000000000000000"
+            multiplier: 130
+          - key: arbitrum
+            name: Arbitrum
+            chain_id: 42161
+            rpc: https://arb1.arbitrum.io/rpc
+            usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+            native_min: "450000000000000"
+            native_max: "5000000000000000"
+            multiplier: 200
+          - key: robinhood
+            name: Robinhood Chain
+            chain_id: 4663
+            rpc: https://rpc.mainnet.chain.robinhood.com
+            usdc: ""
+            native_min: "450000000000000"
+            native_max: "5000000000000000"
+            multiplier: 200
+          - key: bsc
+            name: BNB Chain
+            chain_id: 56
+            rpc: https://bsc-dataseed.bnbchain.org
+            usdc: ""
+            native_min: "1400000000000000" # 0.0014 BNB ≈ $1
+            native_max: "15000000000000000" # 0.015 BNB ≈ $10.3
+            multiplier: 130
+          - key: hyperevm
+            name: HyperEVM
+            chain_id: 999
+            rpc: https://rpc.hyperliquid.xyz/evm
+            usdc: ""
+            native_min: "13000000000000000" # 0.013 HYPE ≈ $1
+            native_max: "140000000000000000" # 0.14 HYPE ≈ $10.5
+            multiplier: 130
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - name: Decide
+        id: decide
+        working-directory: .
+        env:
+          TARGET: ${{ inputs.target }}
+          KEY: ${{ matrix.key }}
+        run: |
+          if [ "$TARGET" = "all" ] || [ "$TARGET" = "sources" ] || [ "$TARGET" = "$KEY" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping ${KEY}."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.decide.outputs.run == 'true'
+      - uses: foundry-rs/foundry-toolchain@v1
+        if: steps.decide.outputs.run == 'true'
+      - name: Install libraries
+        if: steps.decide.outputs.run == 'true'
+        run: |
+          forge install foundry-rs/forge-std@v1.9.4 --no-git
+          forge install OpenZeppelin/openzeppelin-contracts@v5.1.0 --no-git
+      - name: Deploy
+        if: steps.decide.outputs.run == 'true'
+        env:
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          RPC_URL: ${{ vars[format('RPC_URL_{0}', matrix.chain_id)] || matrix.rpc }}
+          USDC: ${{ matrix.usdc }}
+          USDC_MIN: "1000000"
+          USDC_MAX: "10000000"
+          NATIVE_MIN_WEI: ${{ matrix.native_min }}
+          NATIVE_MAX_WEI: ${{ matrix.native_max }}
+          MULT: ${{ matrix.multiplier }}
+        run: |
+          if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then echo "::error::Secret DEPLOYER_PRIVATE_KEY is not set."; exit 1; fi
+          [ -n "$USDC" ] || unset USDC
+          forge script script/Deploy.s.sol:DeploySource \
+            --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$OWNER" \
+            --broadcast --slow --gas-estimate-multiplier "$MULT"
+      - name: Summary
+        if: always() && steps.decide.outputs.run == 'true'
+        env:
+          CHAIN_ID: ${{ matrix.chain_id }}
+          NAME: ${{ matrix.name }}
+        run: |
+          f="broadcast/Deploy.s.sol/${CHAIN_ID}/run-latest.json"
+          [ -f "$f" ] || exit 0
+          addr=$(jq -r '.transactions[] | select(.transactionType=="CREATE") | .contractAddress' "$f" | head -1)
+          {
+            echo "### ${NAME}"
+            echo '```'
+            echo "NEXT_PUBLIC_REFUEL_DEPOSIT_${CHAIN_ID}=${addr}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.decide.outputs.run == 'true'
+        with:
+          name: broadcast-${{ matrix.key }}
+          path: contracts/broadcast
+          if-no-files-found: ignore
