@@ -588,3 +588,7 @@ body:has(.ew-page) { background: transparent; }
 .official-links a { color: var(--indigo-ink); text-decoration: none; }
 .official-note { margin: 0; font-size: 13.5px; color: var(--muted); }
 .official.compact { box-shadow: none; }
+
+/* Refuel widget */
+.refuel-embed { gap: 14px; }
+.refuel-embed .console { box-shadow: none; }

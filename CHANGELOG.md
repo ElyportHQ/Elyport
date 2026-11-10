@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- **Refuel widget** for other dapps: `data-elyport="refuel-button"` (a "Need gas?" button that opens Refuel in a popup)
+  or `data-elyport="refuel"` (inline form), with an optional `data-to` recipient. Page: `/embed/refuel?to=0x…`.
+- **Gas Drop: import token holders.** Load any Elysium token's holders straight from its Transfer logs, skip contracts,
+  set a minimum balance, then split the same amount each or by holdings. API: `/api/v1/holders/{token}`.
 - **Instant Refuel is live**: the refuel vault is funded and deposits on Ethereum, Base, Arbitrum, Robinhood Chain,
   BNB Chain and HyperEVM are delivered as HYPE on Elysium by the relayer, within the vault's fixed caps.
 - **Official $ELYPORT token, detected automatically**: once launched on Montra from the dev wallet, the contract address

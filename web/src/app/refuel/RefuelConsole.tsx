@@ -34,14 +34,14 @@ function saveHistory(items: HistoryItem[]) {
   }
 }
 
-export function RefuelConsole() {
+export function RefuelConsole({ embedded, defaultRecipient }: { embedded?: boolean; defaultRecipient?: string } = {}) {
   const { address } = useAccount();
   const config = useConfig();
   const [chainId, setChainId] = useState<number | "solana">(8453);
   const [pay, setPay] = useState<Pay>("usdc");
   const [usd, setUsd] = useState(5);
   const [custom, setCustom] = useState("");
-  const [recipient, setRecipient] = useState("");
+  const [recipient, setRecipient] = useState(defaultRecipient && isAddress(defaultRecipient) ? defaultRecipient : "");
   const [key, setKey] = useState<`0x${string}` | undefined>();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [moment, setMoment] = useState<Moment | null>(null);
@@ -157,7 +157,7 @@ export function RefuelConsole() {
   }, [key, delivered.data, celebrated, receiveHype]);
 
   return (
-    <div className="app-grid">
+    <div className={embedded ? "stack refuel-embed" : "app-grid"}>
       <SuccessMoment moment={moment} onClose={() => setMoment(null)} />
       <div className="console">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
@@ -284,6 +284,7 @@ export function RefuelConsole() {
           </ol>
         </section>
 
+        {!embedded && (
         <section className="panel" aria-label="Instant stock">
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <span className="eyebrow">Instant stock</span>
@@ -299,7 +300,9 @@ export function RefuelConsole() {
             happens within 24 hours, you can refund it yourself from Your refuels.
           </p>
         </section>
+        )}
 
+        {(!embedded || history.length > 0) && (
         <section className="panel" aria-label="History">
           <div className="eyebrow" style={{ marginBottom: 8 }}>
             Your refuels
@@ -319,6 +322,12 @@ export function RefuelConsole() {
             </p>
           )}
         </section>
+        )}
+        {embedded && (
+          <p className="eyebrow center" style={{ margin: 0 }}>
+            <a href="https://elyport.com/refuel" target="_blank" rel="noreferrer">Refuel by Elyport ↗</a>
+          </p>
+        )}
       </div>
     </div>
   );

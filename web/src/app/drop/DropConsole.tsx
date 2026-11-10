@@ -11,6 +11,7 @@ import { useDropFee } from "@/lib/useToolFee";
 import { DiscountHint, FeeValue } from "@/components/FeeLine";
 import { SuccessMoment, useCelebratePreview, type Moment } from "@/components/SuccessMoment";
 import { FanOut } from "@/components/home/Scenes";
+import { HolderImport } from "./HolderImport";
 
 const BATCH = 400; // below the contract's 500 cap, leaves gas headroom
 
@@ -136,6 +137,17 @@ export function DropConsole() {
           <button type="button" className="chip" aria-pressed={useSame} onClick={() => setUseSame((v) => !v)}>
             Same amount for all
           </button>
+          <HolderImport
+            dropDecimals={decimals}
+            dropSymbol={symbol}
+            onUse={(t, sameAmount) => {
+              setText(t);
+              if (sameAmount !== undefined) {
+                setUseSame(true);
+                setSame(sameAmount);
+              } else setUseSame(false);
+            }}
+          />
         </div>
         {useSame && (
           <label className="field">
@@ -195,7 +207,8 @@ export function DropConsole() {
         <section className="panel-holo">
           <div style={{ fontSize: 17, fontWeight: 500, marginBottom: 6 }}>Onboarding a community?</div>
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: "#3E4552" }}>
-            Drop a little HYPE to every holder so they can make their first move on Elysium without bridging.
+            Drop a little HYPE to every holder so they can make their first move on Elysium without bridging. Use Import
+            token holders to load them straight from the chain.
           </p>
         </section>
       </div>
