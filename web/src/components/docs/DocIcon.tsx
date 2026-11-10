@@ -62,6 +62,7 @@ const paths: Record<Key, ReactNode> = {
     </>
   ),
   code: <path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" />,
+  pulse: <path d="M3 12h4l2.5-6 5 12 2.5-6h4" />,
   shield: (
     <>
       <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />

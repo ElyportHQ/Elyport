@@ -1,4 +1,4 @@
-export type DocIcon = "spark" | "plug" | "fuel" | "drop" | "send" | "lock" | "bars" | "search" | "ticket" | "user" | "badge" | "coin" | "code" | "shield" | "help" | "doc" | "embed" | "api" | "package";
+export type DocIcon = "spark" | "plug" | "fuel" | "drop" | "send" | "lock" | "bars" | "search" | "ticket" | "user" | "badge" | "coin" | "code" | "shield" | "help" | "doc" | "embed" | "api" | "package" | "pulse";
 
 export type DocLink = { href: string; title: string; blurb: string; icon: DocIcon };
 export type DocGroup = { id: string; n: string; title: string; pages: DocLink[] };
@@ -58,6 +58,7 @@ export const docGroups: DocGroup[] = [
       { href: "/docs/fees", title: "Fees & limits", blurb: "Every number in one table", icon: "coin" },
       { href: "/docs/contracts", title: "Contracts", blurb: "Addresses and source", icon: "code" },
       { href: "/docs/security", title: "Security model", blurb: "What the contracts guarantee", icon: "shield" },
+      { href: "/docs/status", title: "Live status", blurb: "Every contract, read from the chain now", icon: "pulse" },
       { href: "/docs/faq", title: "FAQ", blurb: "Quick answers", icon: "help" },
     ],
   },
@@ -83,15 +84,37 @@ export function docMeta(href: string) {
 
 /** Public deposit contracts for Instant Refuel on each source chain. */
 export const depositContracts = [
-  { chain: "Ethereum", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://etherscan.io/address/" },
-  { chain: "Base", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://basescan.org/address/" },
-  { chain: "Arbitrum", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://arbiscan.io/address/" },
-  { chain: "Robinhood Chain", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://robinhoodchain.blockscout.com/address/" },
-  { chain: "BNB Chain", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://bscscan.com/address/" },
-  { chain: "HyperEVM", address: "0xD5C3e28D683B948Ff8e96AD12f04986EaA13127A", explorer: "https://hyperevmscan.io/address/" },
+  { chainId: 1, chain: "Ethereum", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://etherscan.io/address/" },
+  { chainId: 8453, chain: "Base", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://basescan.org/address/" },
+  { chainId: 42161, chain: "Arbitrum", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://arbiscan.io/address/" },
+  { chainId: 4663, chain: "Robinhood Chain", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://robinhoodchain.blockscout.com/address/" },
+  { chainId: 56, chain: "BNB Chain", address: "0x9E5dc700De34a441e1d0b74Fc88D1b1F666ff9B4", explorer: "https://bscscan.com/address/" },
+  { chainId: 999, chain: "HyperEVM", address: "0xD5C3e28D683B948Ff8e96AD12f04986EaA13127A", explorer: "https://hyperevmscan.io/address/" },
 ];
+
+/** Earlier contract versions. They were never used; /status proves it live from the chain. */
+export const retiredContracts = {
+  elysium: [
+    { name: "Locker", version: "v1", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", kind: "locker" },
+    { name: "Vesting", version: "v1", address: "0xb5cedd59dd57d9145ff6d5fca3fb171304f055f7", kind: "vesting" },
+    { name: "Gas Drop", version: "v1", address: "0x9e5dc700de34a441e1d0b74fc88d1b1f666ff9b4", kind: "drop" },
+    { name: "Locker", version: "v2", address: "0x7868e66c72df8dd0827f93e3674e53f72f8939cc", kind: "locker" },
+    { name: "Vesting", version: "v2", address: "0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e", kind: "vesting" },
+    { name: "Gas Drop", version: "v2", address: "0x7ba7b360771b23277991f29488afe8827d2bce33", kind: "drop" },
+    { name: "Refuel vault", version: "v1–v2", address: "0xa43e860ec638b039cb926e98590852c2fdcbcf65", kind: "vault" },
+  ],
+  deposits: [
+    { chainId: 1, chain: "Ethereum", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39" },
+    { chainId: 8453, chain: "Base", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39" },
+    { chainId: 42161, chain: "Arbitrum", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39" },
+    { chainId: 4663, chain: "Robinhood Chain", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39" },
+    { chainId: 56, chain: "BNB Chain", address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39" },
+    { chainId: 999, chain: "HyperEVM", address: "0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e" },
+  ],
+} as const;
 
 export const roles = {
   owner: "0x90D772A278F559853524C4803A27ba51324638dc",
   treasury: "0xb3A4886c9F42Dd34F65a1B0DA7A3a7e3b0F72014",
+  relayer: "0x48Ee3081A156D0713c86C0a3360bABb07b823dB2",
 };

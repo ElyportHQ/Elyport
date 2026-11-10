@@ -64,6 +64,10 @@ export default function SecurityDoc() {
         <li>Prices come from three sources; quotes stop if they disagree.</li>
         <li>Each payment can be delivered only once.</li>
         <li>Both the vault and the deposit contracts can be paused.</li>
+        <li>
+          An independent check every 5 minutes confirms each delivered refuel was really paid by the vault and each vault payout
+          matches a real deposit. Its live result is on <a href="/docs/status">Live status</a>.
+        </li>
       </ul>
 
       <H2 id="build">How it&apos;s built</H2>
@@ -71,6 +75,9 @@ export default function SecurityDoc() {
         <li>OpenZeppelin 5.1: Ownable2Step, ReentrancyGuard, SafeERC20, Pausable.</li>
         <li>Foundry tests run on every change.</li>
         <li>Verified source on the Elysium explorer.</li>
+        <li>
+          Owner, fees, caps and balances of every contract can be checked live on <a href="/docs/status">Live status</a>.
+        </li>
       </ul>
 
       <H2 id="review">Reviews</H2>

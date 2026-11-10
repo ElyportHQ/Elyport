@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Addr, Callout, H2, SpecTable } from "@/components/docs/blocks";
 import { DocPage } from "@/components/docs/DocPage";
 import { contracts, explorerAddress, githubUrl } from "@/lib/config";
-import { depositContracts, roles } from "@/lib/docs";
+import { depositContracts, retiredContracts, roles } from "@/lib/docs";
 
 export const metadata: Metadata = { title: "Contracts", description: "Every Elyport contract address on Elysium and source chains, verified and open source." };
 
@@ -41,6 +41,25 @@ export default function ContractsDoc() {
         The owner cannot move locked tokens, shorten a lock, or touch vesting. Ownership changes use a two-step transfer, so it
         cannot be handed to a wrong address by mistake.
       </p>
+
+      <H2 id="retired">Retired contracts</H2>
+      <p>
+        Before launch, Elyport v3 replaced two earlier sets of contracts to add fee hard caps, sender refunds and tighter Refuel
+        limits. The earlier ones were never used: no locks, no schedules, no deposits and no funds. They are not linked from the
+        app. <a href="/docs/status#retired">Live status</a> reads every count and balance from the chain to prove it.
+      </p>
+      <SpecTable
+        head={["Contract", "Version", "Address"]}
+        rows={[
+          ...retiredContracts.elysium.map((c) => [c.name, c.version, <Addr key={c.address} a={c.address} href={explorerAddress(c.address)} />]),
+          ...retiredContracts.deposits.map((c) => [
+            `Refuel deposit (${c.chain})`,
+            "v1–v2",
+            <Addr key={c.chain} a={c.address} href={(depositContracts.find((d) => d.chainId === c.chainId)?.explorer ?? "") + c.address} />,
+          ]),
+        ]}
+      />
+      <Callout kind="warn">Do not send anything to a retired address. Always use the addresses at the top of this page.</Callout>
 
       <H2 id="source">Source code</H2>
       <ul>

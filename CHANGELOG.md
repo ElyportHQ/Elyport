@@ -11,6 +11,11 @@
   close to the self-refund window.
 - **Prices** from CoinGecko, DefiLlama and Hyperliquid, median per asset; quoting stops if sources disagree by >3%.
 - **Rate limits** on `/api/refuel/process` (with per-deposit dedupe) and `/api/v1`.
+- **Delivery monitor**: every 5 minutes an independent check confirms each refuel marked delivered was paid by the vault
+  and each vault payout matches a deposit (`/api/refuel/monitor`, GitHub Actions fails on a mismatch).
+- **Live status** page (`/docs/status`, `/status`): owner, fee recipient, fees vs hard caps, Refuel caps vs ceilings,
+  deposit balances vs what they owe, and the retired v1/v2 contracts with on-chain proof they were never used.
+- **On-chain LP checker** (`ElyportLPCheck`): the same pair check as the app, callable by anyone from any contract.
 
 ### Contracts v3 (deployed 2026-11-10)
 - Hard fee caps (Locker 1, Vesting 1, Drop 0.5 HYPE), vault cap ceilings (1 / 3 / 50 HYPE), sender self-refund after

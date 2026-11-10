@@ -20,7 +20,7 @@ export function SiteFooter() {
         <LiveBlock />
         <span>
           Elyport is an independent tool. Not affiliated with Kinetiq or Elysium. ·{" "}
-          <Link href="/terms">Terms</Link> · <Link href="/risk">Risk</Link> ·{" "}
+          <Link href="/docs/status">Status</Link> · <Link href="/terms">Terms</Link> · <Link href="/risk">Risk</Link> ·{" "}
           <a href={githubUrl} target="_blank" rel="noreferrer">
             GitHub
           </a>{" "}
@@ -63,6 +63,7 @@ export function HomeFooter() {
             <Link href="/me">My Elyport</Link>
             <Link href="/docs">Docs</Link>
             <Link href="/docs/contracts">Contracts</Link>
+            <Link href="/docs/status">Live status</Link>
             <Link href="/docs/widgets">Widgets &amp; API</Link>
           </div>
           <div>
