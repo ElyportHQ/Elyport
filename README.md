@@ -150,6 +150,12 @@ and protected by `CRON_SECRET`. The relayer wallet needs HYPE on Elysium and nat
 
 </details>
 
+## License
+
+- **App and tooling** (`web/`, workflows, docs): [Business Source License 1.1](LICENSE). Free to read, audit, run and test;
+  running a competing hosted service is not allowed. Converts to GPL-2.0-or-later on 2030-11-10.
+- **Smart contracts** (`contracts/`): [MIT](contracts/LICENSE), the same source that is verified on-chain.
+
 ## Principles
 
 - **Verifiable by default.** Every lock and schedule has a public page anyone can check.
