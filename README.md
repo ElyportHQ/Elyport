@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://elyport-mu.vercel.app"><b>Open the app</b></a> ·
-  <a href="https://elyport-mu.vercel.app/docs">Docs</a> ·
+  <a href="https://elyport.com"><b>Open the app</b></a> ·
+  <a href="https://elyport.com/docs">Docs</a> ·
   <a href="#contracts">Contracts</a> ·
   <a href="#run-it-locally">Run locally</a>
 </p>
