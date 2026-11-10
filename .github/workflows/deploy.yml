@@ -14,7 +14,7 @@ on:
         required: true
         default: all
         type: choice
-        options: [all, elysium, tools, lpcheck, sources, ethereum, base, arbitrum, robinhood, bsc, hyperevm]
+        options: [all, elysium, tools, lpcheck, timelock, sources, ethereum, base, arbitrum, robinhood, bsc, hyperevm]
       confirm:
         description: 'Type DEPLOY to confirm a mainnet deploy'
         required: true
@@ -51,7 +51,7 @@ jobs:
   elysium:
     name: Elysium (Locker, Vesting, Drop, Vault)
     needs: check
-    if: inputs.target == 'all' || inputs.target == 'elysium' || inputs.target == 'tools' || inputs.target == 'lpcheck'
+    if: inputs.target == 'all' || inputs.target == 'elysium' || inputs.target == 'tools' || inputs.target == 'lpcheck' || inputs.target == 'timelock'
     runs-on: ubuntu-latest
     environment: mainnet
     defaults:
@@ -88,6 +88,7 @@ jobs:
           SCRIPT=DeployElysium
           [ "$TARGET" = "tools" ] && SCRIPT=DeployElysiumTools
           [ "$TARGET" = "lpcheck" ] && SCRIPT=DeployLPCheck
+          [ "$TARGET" = "timelock" ] && SCRIPT=DeployTimelock
           forge script "script/Deploy.s.sol:$SCRIPT" \
             --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$DEPLOYER" \
             --broadcast --slow --gas-estimate-multiplier 200
@@ -100,7 +101,7 @@ jobs:
             echo "### Elysium"
             echo '```'
             jq -r '.transactions[] | select(.transactionType=="CREATE") |
-              "NEXT_PUBLIC_" + ({"ElyportLocker":"LOCKER","ElyportVesting":"VESTING","ElyportDrop":"DROP","ElyportRefuelVault":"REFUEL_VAULT","ElyportLPCheck":"LP_CHECK"}[.contractName]) + "_ADDRESS=" + .contractAddress' "$f"
+              "NEXT_PUBLIC_" + ({"ElyportLocker":"LOCKER","ElyportVesting":"VESTING","ElyportDrop":"DROP","ElyportRefuelVault":"REFUEL_VAULT","ElyportLPCheck":"LP_CHECK","ElyportTimelock":"TIMELOCK"}[.contractName]) + "_ADDRESS=" + .contractAddress' "$f"
             b=$(jq -r '.receipts[0].blockNumber // empty' "$f")
             [ -n "$b" ] && echo "NEXT_PUBLIC_DEPLOY_BLOCK=$((b))"
             echo '```'
@@ -115,7 +116,7 @@ jobs:
   sources:
     name: Deposit on ${{ matrix.name }}
     needs: [check, elysium]
-    if: always() && needs.check.result == 'success' && inputs.target != 'elysium' && inputs.target != 'tools' && inputs.target != 'lpcheck'
+    if: always() && needs.check.result == 'success' && inputs.target != 'elysium' && inputs.target != 'tools' && inputs.target != 'lpcheck' && inputs.target != 'timelock'
     runs-on: ubuntu-latest
     environment: mainnet
     strategy:

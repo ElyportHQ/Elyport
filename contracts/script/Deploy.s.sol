@@ -5,6 +5,7 @@ import {Script, console2} from "forge-std/Script.sol";
 import {ElyportLocker} from "../src/ElyportLocker.sol";
 import {ElyportVesting} from "../src/ElyportVesting.sol";
 import {ElyportLPCheck} from "../src/ElyportLPCheck.sol";
+import {ElyportTimelock} from "../src/ElyportTimelock.sol";
 import {ElyportDrop} from "../src/ElyportDrop.sol";
 import {ElyportRefuelVault} from "../src/ElyportRefuelVault.sol";
 import {ElyportRefuelDeposit} from "../src/ElyportRefuelDeposit.sol";
@@ -91,5 +92,17 @@ contract DeployLPCheck is Script {
         );
         vm.stopBroadcast();
         console2.log("NEXT_PUBLIC_LP_CHECK_ADDRESS=%s", address(c));
+    }
+}
+
+/// @notice Deploys the 48-hour timelock. OWNER is its only proposer; anyone can execute after the delay.
+/// Ownership moves later: OWNER calls transferOwnership(timelock) on each contract, then schedules
+/// acceptOwnership() through the timelock (see /admin on the site).
+contract DeployTimelock is Script {
+    function run() external {
+        vm.startBroadcast();
+        ElyportTimelock t = new ElyportTimelock(vm.envAddress("OWNER"));
+        vm.stopBroadcast();
+        console2.log("NEXT_PUBLIC_TIMELOCK_ADDRESS=%s", address(t));
     }
 }
