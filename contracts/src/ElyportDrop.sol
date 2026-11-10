@@ -34,6 +34,11 @@ contract ElyportDrop is ElyportFees, ReentrancyGuard {
         emit DropFeeUpdated(initialDropFee);
     }
 
+    /// @notice Fee `user` pays per batch, after any holder discount.
+    function dropFeeFor(address user) external view returns (uint256) {
+        return feeFor(dropFee, user);
+    }
+
     function setDropFee(uint256 fee) external onlyOwner {
         dropFee = fee;
         emit DropFeeUpdated(fee);
@@ -46,7 +51,8 @@ contract ElyportDrop is ElyportFees, ReentrancyGuard {
         for (uint256 i; i < n; ++i) {
             total += amounts[i];
         }
-        if (msg.value != total + dropFee) revert InsufficientFee(total + dropFee, msg.value);
+        uint256 fee = feeFor(dropFee, msg.sender);
+        if (msg.value != total + fee) revert InsufficientFee(total + fee, msg.value);
 
         uint256 failed;
         for (uint256 i; i < n; ++i) {
@@ -63,13 +69,14 @@ contract ElyportDrop is ElyportFees, ReentrancyGuard {
             if (!refunded) revert RefundFailed();
         }
 
-        _takeFee(dropFee);
+        _takeFee(fee);
         emit Dropped(msg.sender, address(0), n, total - failed);
     }
 
     /// @notice Sends an ERC-20 from the caller to each recipient. Needs prior approval of the total.
     function dropToken(address token, address[] calldata recipients, uint256[] calldata amounts) external payable nonReentrant {
-        if (msg.value != dropFee) revert InsufficientFee(dropFee, msg.value);
+        uint256 fee = feeFor(dropFee, msg.sender);
+        if (msg.value != fee) revert InsufficientFee(fee, msg.value);
         if (token == address(0)) revert ZeroAddress();
         uint256 n = _check(recipients, amounts);
         uint256 total;
@@ -79,7 +86,7 @@ contract ElyportDrop is ElyportFees, ReentrancyGuard {
             t.safeTransferFrom(msg.sender, recipients[i], amounts[i]);
             total += amounts[i];
         }
-        _takeFee(dropFee);
+        _takeFee(fee);
         emit Dropped(msg.sender, token, n, total);
     }
 

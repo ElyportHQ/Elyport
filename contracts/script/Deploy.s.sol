@@ -63,3 +63,20 @@ contract DeploySource is Script {
         console2.log("Refuel deposit on chain %s: %s", block.chainid, address(dep));
     }
 }
+
+/// @notice Deploys only the Elysium tools (Locker, Vesting, Drop), e.g. for a new version.
+/// The Refuel vault stays where it is.
+contract DeployElysiumTools is Script {
+    function run() external {
+        address owner = vm.envAddress("OWNER");
+        address feeRecipient = vm.envAddress("FEE_RECIPIENT");
+        vm.startBroadcast();
+        ElyportLocker locker = new ElyportLocker(owner, feeRecipient, vm.envUint("LOCK_FEE_WEI"));
+        ElyportVesting vesting = new ElyportVesting(owner, feeRecipient, vm.envUint("VESTING_FEE_WEI"));
+        ElyportDrop drop = new ElyportDrop(owner, feeRecipient, vm.envUint("DROP_FEE_WEI"));
+        vm.stopBroadcast();
+        console2.log("NEXT_PUBLIC_LOCKER_ADDRESS=%s", address(locker));
+        console2.log("NEXT_PUBLIC_VESTING_ADDRESS=%s", address(vesting));
+        console2.log("NEXT_PUBLIC_DROP_ADDRESS=%s", address(drop));
+    }
+}

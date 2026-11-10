@@ -74,6 +74,11 @@ contract ElyportVesting is ElyportFees, ReentrancyGuard {
         emit VestingFeeUpdated(initialVestingFee);
     }
 
+    /// @notice Fee `user` pays per create call, after any holder discount.
+    function vestingFeeFor(address user) external view returns (uint256) {
+        return feeFor(vestingFee, user);
+    }
+
     function setVestingFee(uint256 fee) external onlyOwner {
         vestingFee = fee;
         emit VestingFeeUpdated(fee);
@@ -90,7 +95,8 @@ contract ElyportVesting is ElyportFees, ReentrancyGuard {
         uint64 period,
         bool revocable
     ) external payable nonReentrant returns (uint256 firstId) {
-        if (msg.value != vestingFee) revert InsufficientFee(vestingFee, msg.value);
+        uint256 fee = feeFor(vestingFee, msg.sender);
+        if (msg.value != fee) revert InsufficientFee(fee, msg.value);
         uint256 n = beneficiaries.length;
         if (n == 0 || n != amounts.length) revert LengthMismatch();
         if (n > MAX_BATCH) revert BatchTooLarge();

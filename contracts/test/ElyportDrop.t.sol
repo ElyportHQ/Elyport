@@ -72,4 +72,18 @@ contract ElyportDropTest is Test {
         vm.expectRevert(ElyportDrop.BatchTooLarge.selector);
         drop.dropToken{value: FEE}(address(token), r, a);
     }
+
+    function test_DropHolderDiscount() public {
+        MockToken elyx = new MockToken();
+        elyx.mint(sender, 500 ether);
+        vm.prank(owner);
+        drop.setDiscount(address(elyx), 500 ether, 2_500); // 25% off
+        uint256 fee = drop.dropFeeFor(sender);
+        assertEq(fee, (FEE * 7_500) / 10_000);
+        (address[] memory r, uint256[] memory a) = _list(2);
+        vm.prank(sender);
+        drop.dropNative{value: 0.2 ether + fee}(r, a);
+        assertEq(treasury.balance, fee);
+    }
 }
+

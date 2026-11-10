@@ -14,7 +14,7 @@ on:
         required: true
         default: all
         type: choice
-        options: [all, elysium, sources, ethereum, base, arbitrum, robinhood, bsc, hyperevm]
+        options: [all, elysium, tools, sources, ethereum, base, arbitrum, robinhood, bsc, hyperevm]
       confirm:
         description: 'Type DEPLOY to confirm a mainnet deploy'
         required: true
@@ -51,7 +51,7 @@ jobs:
   elysium:
     name: Elysium (Locker, Vesting, Drop, Vault)
     needs: check
-    if: inputs.target == 'all' || inputs.target == 'elysium'
+    if: inputs.target == 'all' || inputs.target == 'elysium' || inputs.target == 'tools'
     runs-on: ubuntu-latest
     environment: mainnet
     defaults:
@@ -79,15 +79,18 @@ jobs:
       - name: Deploy
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          TARGET: ${{ inputs.target }}
         run: |
           if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then echo "::error::Secret DEPLOYER_PRIVATE_KEY is not set."; exit 1; fi
-          forge script script/Deploy.s.sol:DeployElysium \
+          SCRIPT=DeployElysium
+          [ "$TARGET" = "tools" ] && SCRIPT=DeployElysiumTools
+          forge script "script/Deploy.s.sol:$SCRIPT" \
             --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$DEPLOYER" \
             --broadcast --slow --gas-estimate-multiplier 200
       - name: Summary
         if: always()
         run: |
-          f=$(ls broadcast/Deploy.s.sol/*/run-latest.json 2>/dev/null | head -1)
+          f=$(ls -t broadcast/Deploy.s.sol/*/run-latest.json 2>/dev/null | head -1)
           [ -n "$f" ] || exit 0
           {
             echo "### Elysium"
@@ -108,7 +111,7 @@ jobs:
   sources:
     name: Deposit on ${{ matrix.name }}
     needs: [check, elysium]
-    if: always() && needs.check.result == 'success' && inputs.target != 'elysium'
+    if: always() && needs.check.result == 'success' && inputs.target != 'elysium' && inputs.target != 'tools'
     runs-on: ubuntu-latest
     environment: mainnet
     strategy:

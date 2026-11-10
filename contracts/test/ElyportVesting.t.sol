@@ -168,5 +168,20 @@ contract ElyportVestingTest is Test {
         vesting.createSchedules{value: FEE}(address(token), b, a, uint64(block.timestamp), 0, 10, 1, false);
         assertLt(g - gasleft(), 30_000_000);
     }
+
+    function test_VestingHolderDiscount() public {
+        MockToken elyx = new MockToken();
+        elyx.mint(creator, 1 ether);
+        vm.prank(owner);
+        vesting.setDiscount(address(elyx), 1 ether, 10_000); // free for holders
+        assertEq(vesting.vestingFeeFor(creator), 0);
+        address[] memory b = new address[](1);
+        b[0] = alice;
+        uint256[] memory a = new uint256[](1);
+        a[0] = 1 ether;
+        vm.prank(creator);
+        vesting.createSchedules{value: 0}(address(token), b, a, uint64(block.timestamp), 0, 10, 1, false);
+        assertEq(vesting.scheduleCount(), 1);
+    }
 }
 

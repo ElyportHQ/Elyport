@@ -36,6 +36,7 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
     uint256 public lockFee;
 
     uint256 public constant MAX_NOTE_LENGTH = 280;
+    uint256 public constant MAX_LOCKS_PER_TX = 20;
 
     Lock[] private _locks;
     mapping(address token => uint256[]) private _locksByToken;
@@ -49,6 +50,8 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
     error UnknownLock();
     error NotLPToken();
     error NoteTooLong();
+    error LengthMismatch();
+    error BatchTooLarge();
 
     event LockFeeUpdated(uint256 fee);
     event LockCreated(
@@ -71,6 +74,11 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
         emit LockFeeUpdated(fee);
     }
 
+    /// @notice Fee `user` pays per lock, after any holder discount.
+    function lockFeeFor(address user) external view returns (uint256) {
+        return feeFor(lockFee, user);
+    }
+
     /// @notice Locks `amount` of `token` until `unlockAt` for `lockOwner`.
     /// @dev The stored amount is the balance actually received, so fee-on-transfer tokens are handled.
     function createLock(address token, uint256 amount, uint64 unlockAt, address lockOwner, bool isLP, string calldata note)
@@ -79,37 +87,48 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
         nonReentrant
         returns (uint256 id)
     {
-        if (msg.value != lockFee) revert InsufficientFee(lockFee, msg.value);
-        if (token == address(0) || lockOwner == address(0)) revert ZeroAddress();
+        uint256 fee = feeFor(lockFee, msg.sender);
+        if (msg.value != fee) revert InsufficientFee(fee, msg.value);
+        (address t0, address t1) = _checkCommon(token, lockOwner, isLP, note);
         if (amount == 0) revert InvalidAmount();
         if (unlockAt <= block.timestamp) revert InvalidUnlockTime();
-        if (bytes(note).length > MAX_NOTE_LENGTH) revert NoteTooLong();
-        (address t0, address t1) = isLP ? _pairTokens(token) : (address(0), address(0));
 
         uint256 received = _pull(token, amount);
         if (received == 0 || received > type(uint128).max) revert InvalidAmount();
-
-        id = _locks.length;
-        _locks.push(
-            Lock({
-                token: token,
-                owner: lockOwner,
-                amount: uint128(received),
-                unlockAt: unlockAt,
-                createdAt: uint64(block.timestamp),
-                isLP: isLP,
-                withdrawn: false
-            })
-        );
-        _locksByToken[token].push(id);
-        if (isLP) {
-            if (t0 != token) _locksByToken[t0].push(id);
-            if (t1 != token && t1 != t0) _locksByToken[t1].push(id);
-        }
-        _locksByOwner[lockOwner].add(id);
-
+        id = _store(token, lockOwner, received, unlockAt, isLP, t0, t1, note);
         _takeFee(msg.value);
-        emit LockCreated(id, token, lockOwner, received, unlockAt, isLP, note);
+    }
+
+    /// @notice Creates several locks of one token in one transaction, e.g. a team unlocking in tranches.
+    ///         Each lock costs one lock fee. Fee-on-transfer tokens are not supported here.
+    function createLocks(
+        address token,
+        uint256[] calldata amounts,
+        uint64[] calldata unlockAts,
+        address lockOwner,
+        bool isLP,
+        string calldata note
+    ) external payable nonReentrant returns (uint256 firstId) {
+        uint256 n = amounts.length;
+        if (n == 0 || n != unlockAts.length) revert LengthMismatch();
+        if (n > MAX_LOCKS_PER_TX) revert BatchTooLarge();
+        uint256 fee = feeFor(lockFee, msg.sender) * n;
+        if (msg.value != fee) revert InsufficientFee(fee, msg.value);
+        (address t0, address t1) = _checkCommon(token, lockOwner, isLP, note);
+
+        uint256 sum;
+        for (uint256 i; i < n; ++i) {
+            if (amounts[i] == 0 || amounts[i] > type(uint128).max) revert InvalidAmount();
+            if (unlockAts[i] <= block.timestamp) revert InvalidUnlockTime();
+            sum += amounts[i];
+        }
+        if (_pull(token, sum) != sum) revert InvalidAmount();
+
+        firstId = _locks.length;
+        for (uint256 i; i < n; ++i) {
+            _store(token, lockOwner, amounts[i], unlockAts[i], isLP, t0, t1, note);
+        }
+        _takeFee(msg.value);
     }
 
     /// @notice Pushes the unlock time later. It can never move earlier.
@@ -193,6 +212,47 @@ contract ElyportLocker is ElyportFees, ReentrancyGuard {
         l = _locks[id];
         if (l.owner != msg.sender) revert NotLockOwner();
         if (l.withdrawn) revert AlreadyWithdrawn();
+    }
+
+    function _checkCommon(address token, address lockOwner, bool isLP, string calldata note)
+        private
+        view
+        returns (address t0, address t1)
+    {
+        if (token == address(0) || lockOwner == address(0)) revert ZeroAddress();
+        if (bytes(note).length > MAX_NOTE_LENGTH) revert NoteTooLong();
+        if (isLP) (t0, t1) = _pairTokens(token);
+    }
+
+    function _store(
+        address token,
+        address lockOwner,
+        uint256 amount,
+        uint64 unlockAt,
+        bool isLP,
+        address t0,
+        address t1,
+        string calldata note
+    ) private returns (uint256 id) {
+        id = _locks.length;
+        _locks.push(
+            Lock({
+                token: token,
+                owner: lockOwner,
+                amount: uint128(amount),
+                unlockAt: unlockAt,
+                createdAt: uint64(block.timestamp),
+                isLP: isLP,
+                withdrawn: false
+            })
+        );
+        _locksByToken[token].push(id);
+        if (isLP) {
+            if (t0 != token) _locksByToken[t0].push(id);
+            if (t1 != token && t1 != t0) _locksByToken[t1].push(id);
+        }
+        _locksByOwner[lockOwner].add(id);
+        emit LockCreated(id, token, lockOwner, amount, unlockAt, isLP, note);
     }
 
     /// @dev Reads token0/token1 from a V2-style pair; reverts with NotLPToken if it is not one.

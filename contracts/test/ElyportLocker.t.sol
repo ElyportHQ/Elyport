@@ -171,4 +171,88 @@ contract ElyportLockerTest is Test {
         vm.expectRevert(ElyportLocker.InvalidUnlockTime.selector);
         locker.extendLock(id, uint64(block.timestamp - 1));
     }
+
+    function test_BatchLocks() public {
+        uint256[] memory amounts = new uint256[](3);
+        uint64[] memory dates = new uint64[](3);
+        for (uint256 i; i < 3; ++i) {
+            amounts[i] = 10 ether * (i + 1);
+            dates[i] = uint64(block.timestamp + (i + 1) * 30 days);
+        }
+        vm.prank(alice);
+        uint256 first = locker.createLocks{value: FEE * 3}(address(token), amounts, dates, alice, false, "team");
+        assertEq(locker.lockCount(), 3);
+        assertEq(locker.getLock(first + 2).amount, 30 ether);
+        assertEq(locker.getLock(first + 2).unlockAt, dates[2]);
+        assertEq(locker.lockIdsByOwner(alice).length, 3);
+        assertEq(token.balanceOf(address(locker)), 60 ether);
+        assertEq(treasury.balance, FEE * 3);
+    }
+
+    function test_RevertWhen_BatchWrongFee() public {
+        uint256[] memory amounts = new uint256[](2);
+        uint64[] memory dates = new uint64[](2);
+        amounts[0] = 1 ether;
+        amounts[1] = 1 ether;
+        dates[0] = uint64(block.timestamp + 1 days);
+        dates[1] = uint64(block.timestamp + 2 days);
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(ElyportFees.InsufficientFee.selector, FEE * 2, FEE));
+        locker.createLocks{value: FEE}(address(token), amounts, dates, alice, false, "");
+    }
+
+    function test_RevertWhen_BatchLengthMismatch() public {
+        uint256[] memory amounts = new uint256[](2);
+        uint64[] memory dates = new uint64[](1);
+        vm.prank(alice);
+        vm.expectRevert(ElyportLocker.LengthMismatch.selector);
+        locker.createLocks{value: FEE * 2}(address(token), amounts, dates, alice, false, "");
+    }
+
+    function test_BatchRejectsFeeOnTransfer() public {
+        TaxToken tax = new TaxToken();
+        tax.mint(alice, 100 ether);
+        uint256[] memory amounts = new uint256[](2);
+        uint64[] memory dates = new uint64[](2);
+        amounts[0] = 10 ether;
+        amounts[1] = 10 ether;
+        dates[0] = uint64(block.timestamp + 1 days);
+        dates[1] = uint64(block.timestamp + 2 days);
+        vm.startPrank(alice);
+        tax.approve(address(locker), type(uint256).max);
+        vm.expectRevert(ElyportLocker.InvalidAmount.selector);
+        locker.createLocks{value: FEE * 2}(address(tax), amounts, dates, alice, false, "");
+        vm.stopPrank();
+    }
+
+    function test_HolderDiscount() public {
+        MockToken elyx = new MockToken();
+        vm.prank(owner);
+        locker.setDiscount(address(elyx), 1_000 ether, 5_000); // 50% off for 1,000+ holders
+        assertEq(locker.lockFeeFor(alice), FEE);
+
+        elyx.mint(alice, 1_000 ether);
+        assertEq(locker.lockFeeFor(alice), FEE / 2);
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(ElyportFees.InsufficientFee.selector, FEE / 2, FEE));
+        locker.createLock{value: FEE}(address(token), 1 ether, uint64(block.timestamp + 1 days), alice, false, "");
+
+        vm.prank(alice);
+        locker.createLock{value: FEE / 2}(address(token), 1 ether, uint64(block.timestamp + 1 days), alice, false, "");
+        assertEq(treasury.balance, FEE / 2);
+    }
+
+    function test_RevertWhen_DiscountOver100Percent() public {
+        vm.prank(owner);
+        vm.expectRevert(ElyportFees.InvalidDiscount.selector);
+        locker.setDiscount(address(token), 1, 10_001);
+    }
+
+    function test_OnlyOwnerSetsDiscount() public {
+        vm.prank(alice);
+        vm.expectRevert();
+        locker.setDiscount(address(token), 1, 1_000);
+    }
 }
+
