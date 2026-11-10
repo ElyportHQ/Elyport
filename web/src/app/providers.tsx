@@ -13,13 +13,13 @@ import {
   defineChain as defineAppKitChain,
   type AppKitNetwork,
 } from "@reown/appkit/networks";
-import { elysium, hyperEvm, reownProjectId, siteUrl } from "@/lib/config";
+import { elysium, hyperEvm, reownProjectId, robinhoodChain, siteUrl } from "@/lib/config";
 
 // A placeholder keeps builds working before the Reown project ID is set; wallet
 // connections need the real ID from dashboard.reown.com.
 const projectId = reownProjectId || "00000000000000000000000000000000";
 
-const toAppKit = (chain: typeof elysium | typeof hyperEvm) =>
+const toAppKit = (chain: typeof elysium | typeof hyperEvm | typeof robinhoodChain) =>
   defineAppKitChain({
     ...chain,
     caipNetworkId: `eip155:${chain.id}` as `eip155:${number}`,
@@ -28,8 +28,9 @@ const toAppKit = (chain: typeof elysium | typeof hyperEvm) =>
 
 export const elysiumNetwork = toAppKit(elysium);
 const hyperEvmNetwork = toAppKit(hyperEvm);
+const robinhoodNetwork = toAppKit(robinhoodChain);
 
-const networks: [AppKitNetwork, ...AppKitNetwork[]] = [elysiumNetwork, base, arbitrum, mainnet, bsc, hyperEvmNetwork];
+const networks: [AppKitNetwork, ...AppKitNetwork[]] = [elysiumNetwork, base, arbitrum, mainnet, robinhoodNetwork, bsc, hyperEvmNetwork];
 
 export const wagmiAdapter = new WagmiAdapter({ networks, projectId, ssr: true });
 

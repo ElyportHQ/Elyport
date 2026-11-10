@@ -33,6 +33,15 @@ export const hyperEvm = defineChain({
   blockExplorers: { default: { name: "HyperEVMScan", url: "https://hyperevmscan.io" } },
 });
 
+/** Robinhood Chain: Arbitrum Orbit L2 with ETH gas, live since July 2026. */
+export const robinhoodChain = defineChain({
+  id: 4663,
+  name: "Robinhood Chain",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.mainnet.chain.robinhood.com"] } },
+  blockExplorers: { default: { name: "Blockscout", url: "https://robinhoodchain.blockscout.com" } },
+});
+
 export const contracts = {
   locker: asAddress(process.env.NEXT_PUBLIC_LOCKER_ADDRESS),
   vesting: asAddress(process.env.NEXT_PUBLIC_VESTING_ADDRESS),
@@ -82,6 +91,13 @@ export const sourceChains: SourceChain[] = [
     coingeckoId: "ethereum",
     usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
     deposit: asAddress(process.env.NEXT_PUBLIC_REFUEL_DEPOSIT_42161),
+  },
+  {
+    id: robinhoodChain.id,
+    name: "Robinhood",
+    native: "ETH",
+    coingeckoId: "ethereum",
+    deposit: asAddress(process.env.NEXT_PUBLIC_REFUEL_DEPOSIT_4663),
   },
   {
     id: bsc.id,

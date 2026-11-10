@@ -32,7 +32,7 @@
 
 | Tool | For | What it does |
 | --- | --- | --- |
-| **Refuel** | Users | Get HYPE for gas on Elysium, paid from Ethereum, Base, Arbitrum, BNB Chain, HyperEVM or Solana |
+| **Refuel** | Users | Get HYPE for gas on Elysium, paid from Ethereum, Base, Arbitrum, Robinhood Chain, BNB Chain, HyperEVM or Solana |
 | **Gas Drop** | Builders | Send HYPE or any token to up to 500 wallets per batch, from a list or CSV |
 | **Locker** | Builders | Lock LP and tokens until a set date. Extend or top up, never shorten |
 | **Vesting** | Builders | Cliff plus linear or monthly release, for one wallet or a whole CSV |

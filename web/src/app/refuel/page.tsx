@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { RefuelConsole } from "./RefuelConsole";
 
-export const metadata: Metadata = { title: "Refuel", description: "Get HYPE for gas on Elysium from Ethereum, Base, Arbitrum, BNB Chain, Solana or HyperEVM." };
+export const metadata: Metadata = { title: "Refuel", description: "Get HYPE for gas on Elysium from Ethereum, Base, Arbitrum, Robinhood Chain, BNB Chain, Solana or HyperEVM." };
 
 export default function RefuelPage() {
   return (

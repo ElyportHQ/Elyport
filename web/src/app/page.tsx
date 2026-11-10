@@ -76,7 +76,7 @@ export default function Home() {
             <div className="stat-label">Refuel fee</div>
           </div>
           <div>
-            <div className="stat-value">6 chains</div>
+            <div className="stat-value">7 chains</div>
             <div className="stat-label">Pay from where you are</div>
           </div>
         </div>

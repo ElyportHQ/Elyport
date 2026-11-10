@@ -48,14 +48,14 @@ after the smoke test. Raise the daily cap with `setCaps` at the same time.
 
 ## 2. Source-chain deposit contracts
 
-Repeat for Base, Arbitrum, Ethereum, BNB Chain and HyperEVM (skip any chain you do not want for Instant refuel; users there still get the bridge Route).
+Repeat for Base, Arbitrum, Ethereum, Robinhood Chain, BNB Chain and HyperEVM (skip any chain you do not want for Instant refuel; users there still get the bridge Route).
 
 | Chain | `USDC` |
 | --- | --- |
 | Base | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
 | Arbitrum | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831` |
 | Ethereum | `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` |
-| BNB Chain, HyperEVM | leave empty (native only) |
+| Robinhood Chain, BNB Chain, HyperEVM | leave empty (native only) |
 
 ```bash
 export OWNER=0xYourDeployer RELAYER=0xYourRelayer
@@ -74,7 +74,7 @@ Project → Settings → Environment Variables (Production):
 | --- | --- |
 | `NEXT_PUBLIC_LOCKER_ADDRESS` `NEXT_PUBLIC_VESTING_ADDRESS` `NEXT_PUBLIC_DROP_ADDRESS` `NEXT_PUBLIC_REFUEL_VAULT_ADDRESS` | from step 1 |
 | `NEXT_PUBLIC_DEPLOY_BLOCK` | the Elysium block of the deploy (speeds up scans) |
-| `NEXT_PUBLIC_REFUEL_DEPOSIT_<chainId>` | from step 2 (`8453`, `42161`, `1`, `56`, `999`) |
+| `NEXT_PUBLIC_REFUEL_DEPOSIT_<chainId>` | from step 2 (`8453`, `42161`, `1`, `4663`, `56`, `999`) |
 | `RELAYER_PRIVATE_KEY` | the relayer key (mark as **Sensitive**) |
 | `CRON_SECRET` | any long random string |
 | `RPC_URL_<chainId>` | a private RPC per source chain (Alchemy, QuickNode…) |

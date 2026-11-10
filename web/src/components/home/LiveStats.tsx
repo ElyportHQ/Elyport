@@ -53,7 +53,7 @@ export function ActivityTicker() {
           return `${sym}${l.isLP ? " LP" : ""} locked until ${fmtDate(l.unlockAt)}`;
         })
       : [
-          "Refuel · HYPE gas from six chains",
+          "Refuel · HYPE gas from seven chains",
           "Gas Drop · one list, thousands of wallets",
           "Locker · extend anytime, never shorten",
           "Vesting · cliff, linear or monthly",

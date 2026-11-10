@@ -13,12 +13,12 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrum, base, bsc, mainnet } from "viem/chains";
-import { contracts, elysium, hyperEvm, sourceChains } from "./config";
+import { contracts, elysium, hyperEvm, robinhoodChain, sourceChains } from "./config";
 import { depositAbi, vaultAbi } from "./abis";
 import { depositKey } from "./format";
 import { getUsdPrices, type UsdPrices } from "./prices";
 
-const viemChains: Record<number, Chain> = { 1: mainnet, 8453: base, 42161: arbitrum, 56: bsc, 999: hyperEvm };
+const viemChains: Record<number, Chain> = { 1: mainnet, 8453: base, 42161: arbitrum, 4663: robinhoodChain, 56: bsc, 999: hyperEvm };
 /** Errors after which the deposit can never be delivered as-is, so it is refunded. */
 const REFUND_ON = new Set(["OverTxCap", "OverWalletCap", "OverDailyCap", "InsufficientStock", "TransferFailed", "ZeroAddress"]);
 const MAX_PER_RUN = 20;

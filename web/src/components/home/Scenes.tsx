@@ -153,14 +153,14 @@ function Clouds() {
   );
 }
 
-const chains = ["Ethereum", "Base", "Arbitrum", "BNB Chain", "Solana", "HyperEVM"];
+const chains = ["Ethereum", "Base", "Arbitrum", "Robinhood", "BNB Chain", "Solana", "HyperEVM"];
 const dotColors = ["#8FA6E8", "#E79CC2", "#6FCFAE"];
 
 export function RouteViz() {
-  const ys = chains.map((_, i) => 60 + i * 68);
+  const ys = chains.map((_, i) => 40 + (i * 380) / (chains.length - 1));
   const pipe = (y: number) => `M210 ${y}C400 ${y} 420 230 540 230`;
   return (
-    <svg width="100%" viewBox="0 0 1200 460" role="img" aria-label="Six chains flow through Elyport into your Elysium wallet" style={{ display: "block" }}>
+    <svg width="100%" viewBox="0 0 1200 460" role="img" aria-label="Seven chains flow through Elyport into your Elysium wallet" style={{ display: "block" }}>
       <defs>
         <linearGradient id="rStreak" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#BFD7FF" />
