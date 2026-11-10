@@ -93,7 +93,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const hs = Array.from(document.querySelectorAll<HTMLElement>(".doc-article h2[id]"));
-    setToc(hs.map((h) => ({ id: h.id, label: h.dataset.toc || h.textContent || "" })));
+    setToc(hs.map((h) => ({ id: h.id, label: h.dataset.toc || (h.textContent || "").replace(/^#/, "") })));
     const onScroll = () => {
       let cur = hs[0]?.id ?? "";
       for (const h of hs) if (h.getBoundingClientRect().top < 170) cur = h.id;

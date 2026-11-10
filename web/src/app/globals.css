@@ -403,6 +403,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .doc-meta .sep { width: 4px; height: 4px; border-radius: 50%; background: #c3c9d2; }
 .doc-article { max-width: none; padding-top: 8px; }
 .doc-article > p:first-child { margin-top: 28px; }
+.doc-article > h2:first-child { margin-top: 36px; }
 .doc-article h2 { position: relative; scroll-margin-top: 110px; font-size: 28px; margin: 56px 0 14px; }
 .doc-article h2 .anchor { position: absolute; left: -26px; top: 0; padding-right: 8px; color: #b5bcc7; opacity: 0; transition: opacity .15s; text-decoration: none; }
 .doc-article h2:hover .anchor { opacity: 1; }
@@ -480,7 +481,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   .docs-layout { grid-template-columns: minmax(0, 1fr); padding-top: 22px; }
   .docs-side { display: none; }
   .docs-bar { position: sticky; top: 80px; z-index: 20; display: flex; align-items: center; gap: 6px; margin: 6px 12px 0; padding: 6px; border-radius: 18px; overflow: hidden;
-    background: rgba(255,255,255,.78); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.95); box-shadow: 0 8px 24px rgba(60,72,92,.10); }
+    background: rgba(255,255,255,.96); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid #fff; box-shadow: 0 8px 24px rgba(60,72,92,.12); }
   .docs-bar-crumb { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 4px 6px; border: 0; background: transparent; text-align: left; color: var(--muted); }
   .docs-bar-crumb .ic { width: 38px; height: 38px; flex: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--holo); color: var(--ink); }
   .docs-bar-crumb .txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
