@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- **New share card for locks:** the X preview of `/lock/{id}` now shows the ticker, unlock date, amount, share of
+  supply and time left, with a lock ring. The Share to X text now includes the share of supply.
 - **Recently locked** on the home page: the newest active locks, one card per token, with amount, share of supply and
   next unlock. Read on the server and refreshed every minute.
 - **Refuel widget** for other dapps: `data-elyport="refuel-button"` (a "Need gas?" button that opens Refuel in a popup)

@@ -45,7 +45,9 @@ export function LockView({ idStr }: { idStr: string }) {
 
   const pct = supply && supply > 0n ? Number((l.amount * 10_000n) / supply) / 100 : undefined;
   const pageUrl = `${siteUrl}/lock/${id}`;
-  const tweet = `${symbol ?? "Token"}${l.isLP ? " LP" : ""} is locked on @ElyportHQ until ${fmtDate(l.unlockAt)}. Verify it yourself:`;
+  const ticker = `${symbol ? `$${symbol}` : "Token"}${l.isLP ? " LP" : ""}`;
+  const share = pct !== undefined && pct >= 0.01 ? `${pct.toFixed(2)}% of ${ticker} supply` : ticker;
+  const tweet = `🔒 ${share} is locked on @ElyportHQ until ${fmtDate(l.unlockAt)}. Verify it yourself:`;
 
   return (
     <div className="app-grid">
