@@ -475,15 +475,15 @@ function TrancheEditor({
       <legend className="eyebrow" style={{ marginBottom: 10 }}>
         Unlock in tranches · up to 20
       </legend>
-      <div className="preset-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)", marginBottom: 10 }}>
-        <button type="button" className="preset small" onClick={() => setTranches(evenTranches(4, 3 * MONTH))}>
-          4 × quarterly
+      <div className="chips" style={{ marginBottom: 10 }}>
+        <button type="button" className="chip" onClick={() => setTranches(evenTranches(4, 3 * MONTH))}>
+          Quarterly × 4
         </button>
-        <button type="button" className="preset small" onClick={() => setTranches(evenTranches(12, MONTH))}>
-          12 × monthly
+        <button type="button" className="chip" onClick={() => setTranches(evenTranches(12, MONTH))}>
+          Monthly × 12
         </button>
-        <button type="button" className="preset small" onClick={() => setTranches(evenTranches(2, 6 * MONTH))}>
-          2 × 6 months
+        <button type="button" className="chip" onClick={() => setTranches(evenTranches(2, 6 * MONTH))}>
+          Every 6 months × 2
         </button>
       </div>
       <div className="stack" style={{ gap: 8 }}>
