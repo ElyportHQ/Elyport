@@ -8,7 +8,8 @@ export function EmbedResize() {
     if (window.parent === window) return;
     let min = 0;
     const post = () => {
-      const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, min);
+      const page = document.querySelector<HTMLElement>(".ew-page");
+      const h = Math.max(Math.ceil(page ? page.getBoundingClientRect().height : document.body.offsetHeight), min);
       window.parent.postMessage({ type: "elyport:resize", height: h, path: location.pathname }, "*");
     };
     const onMin = (e: Event) => {
@@ -16,7 +17,8 @@ export function EmbedResize() {
       post();
     };
     const ro = new ResizeObserver(post);
-    ro.observe(document.body);
+    const page = document.querySelector(".ew-page");
+    ro.observe(page ?? document.body);
     window.addEventListener("elyport:minheight", onMin);
     post();
     return () => {
