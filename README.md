@@ -36,7 +36,9 @@
 | **Gas Drop** | Builders | Send HYPE or any token to up to 500 wallets per batch, from a list or CSV |
 | **Locker** | Builders | Lock LP and tokens until a set date. Extend or top up, never shorten |
 | **Vesting** | Builders | Cliff plus linear or monthly release, for one wallet or a whole CSV |
-| **Explore** | Traders | Check any token's locks and vesting before buying |
+| **Token safety** | Traders | See how much of a token's LP and supply is locked or vesting before buying |
+| **My Elyport** | Everyone | Your locks, vesting and drops in one place, with Claim, Claim all and Withdraw |
+| **Lock badge** | Builders | A live "Liquidity locked" badge for your site or README at `elyport.com/badge/<token>` |
 
 <p align="center">
   <img src=".github/assets/preview-tools.png" alt="Refuel, Gas Drop, Locker and Vesting on mobile" width="100%">

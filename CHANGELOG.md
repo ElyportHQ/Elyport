@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.1.0 — Dashboard, token safety and lock badge (2026-11-10)
+
+### New
+- **My Elyport** (`/me`): vesting that pays you with **Claim** and **Claim all**, your locks with **Withdraw**,
+  schedules you created, and every Gas Drop you sent.
+- **Next release and reminders**: vesting pages show when the next tokens unlock and how many, with a
+  one-tap calendar reminder.
+- **Token safety**: liquidity locked as a share of each LP pair, tokens locked and still vesting as a share of
+  supply, and a supply breakdown bar.
+- **Lock badge** at `elyport.com/badge/<token>`: a live "Liquidity locked 92% · until Mar 2027" badge with
+  copy-paste HTML and Markdown on the token page.
+
+### Improved
+- Home shows Elyport at a glance: 7 chains, 10 verified contracts, 500 wallets per drop.
+- Launch app opens Gas Drop. Refuel marks Instant as opening soon.
+- LP locks on token pages are shown in LP units.
+- GitHub and X links across the app. Fonts are self-hosted.
+
 ## v1.0.0 — Mainnet launch (2026-11-10)
 
 Elyport is live on Elysium mainnet (chain 99901) at [elyport.com](https://elyport.com).
