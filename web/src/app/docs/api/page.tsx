@@ -65,6 +65,10 @@ export default function ApiDoc() {
           <code>bestLiquidityLockedPercent</code> only counts pairs with <code>verified: true</code>, meaning the pair comes from a
           known DEX factory.
         </li>
+        <li>
+          <code>launchLiquidity</code> is set for tokens launched on Montra, whose liquidity is a Uniswap v4 pool position rather
+          than an LP token. It is only filled after the launch transaction is checked on-chain.
+        </li>
       </ul>
 
       <H2 id="errors">Errors</H2>

@@ -7,6 +7,9 @@
   appears on the home page, `/docs/status` and `/api/v1/official`. Montra's API only suggests candidates; each one is
   verified on-chain (launch receipt from the dev wallet, TokenLaunched from Montra's factory, `creator()` and `symbol()`).
 
+- Token pages and `/api/v1/token` recognise Montra launches (checked against the launch receipt) and show their launch
+  liquidity as sealed in the Montra pool instead of "No LP locked".
+
 ### Security
 - **48-hour timelock** (`ElyportTimelock`, `0x51aed68990a24D6e2712d98e7837F3d89269D06e`) becomes owner of the Locker,
   Vesting, Gas Drop and LP checker. Fee, fee recipient, discount and DEX list changes are public 48 hours ahead on

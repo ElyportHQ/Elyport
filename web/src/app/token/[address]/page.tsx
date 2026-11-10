@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isAddress, type Address } from "viem";
+import { getMontraLaunch } from "@/lib/montra";
 import { TokenView } from "./TokenView";
 
 export async function generateMetadata({ params }: { params: Promise<{ address: string }> }): Promise<Metadata> {
@@ -11,6 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ address: 
 export default async function TokenPage({ params }: { params: Promise<{ address: string }> }) {
   const { address } = await params;
   if (!isAddress(address)) notFound();
+  const montra = await getMontraLaunch(address as Address);
   return (
     <div className="container page">
       <div className="page-head">
@@ -20,7 +22,7 @@ export default async function TokenPage({ params }: { params: Promise<{ address:
           <p>Every lock and vesting schedule behind this token, on one page.</p>
         </div>
       </div>
-      <TokenView token={address as Address} />
+      <TokenView token={address as Address} montra={montra} />
     </div>
   );
 }

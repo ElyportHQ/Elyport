@@ -124,3 +124,23 @@ export async function findOfficialToken(c: PublicClient, o: FinderOptions): Prom
 }
 
 export const montraUrl = (a: string) => `https://montramarkets.xyz/token/${a}`;
+
+export type MontraLaunch = { launchTx: `0x${string}`; block: string; creator: Address; poolId: `0x${string}` };
+
+/**
+ * Is `token` a Montra launch? Montra's API gives the launch transaction; the answer is then taken
+ * only from the receipt: a TokenLaunched log for this token, emitted by Montra's factory.
+ */
+export async function verifyMontraLaunch(c: PublicClient, token: Address, o: Pick<FinderOptions, "montraRegistry" | "montraFactory">): Promise<MontraLaunch | null> {
+  const d = await fetch(`https://api.montramarkets.xyz/api/tokens/${token.toLowerCase()}`, { cache: "no-store", signal: AbortSignal.timeout(8000) })
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+  const tx = (d?.token ?? d)?.launchTx as `0x${string}` | undefined;
+  if (!tx || !/^0x[0-9a-fA-F]{64}$/.test(tx)) return null;
+  const known = await factories(c, { ...OFFICIAL, ...o });
+  const r = await c.getTransactionReceipt({ hash: tx });
+  if (r.status !== "success") return null;
+  const log = r.logs.find((l) => known.has(l.address.toLowerCase()) && l.topics[0] === TOKEN_LAUNCHED && sameAddr(`0x${(l.topics[1] ?? "").slice(26)}`, token));
+  if (!log) return null;
+  return { launchTx: tx, block: String(r.blockNumber), creator: getAddress(`0x${(log.topics[2] ?? "").slice(26)}`), poolId: (log.topics[3] ?? "0x") as `0x${string}` };
+}

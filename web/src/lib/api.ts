@@ -4,6 +4,7 @@ import { contracts, elysium, siteUrl } from "./config";
 import { lockerAbi, vestingAbi } from "./abis";
 import { elysiumClient } from "./og";
 import { verifyPairs } from "./verifyPairs";
+import { getMontraLaunch } from "./montra";
 
 type LockT = { token: Address; owner: Address; amount: bigint; unlockAt: bigint; createdAt: bigint; isLP: boolean; withdrawn: boolean };
 type SchedT = {
@@ -200,6 +201,7 @@ export async function apiToken(token: Address) {
   const verifiedLiquidity = liquidity.filter((p) => p.verified);
 
   const liveSched = schedules.filter((s) => !s.cancelled);
+  const montra = await getMontraLaunch(token);
   return {
     token: meta,
     summary: {
@@ -215,6 +217,8 @@ export async function apiToken(token: Address) {
       updatedAt: t,
     },
     liquidity,
+    /** Launch liquidity that is not an LP token, e.g. a Montra (Uniswap v4) launch pool. Verified on-chain. */
+    launchLiquidity: montra ? { venue: "Montra", sealed: true, poolId: montra.poolId, launchTx: montra.launchTx } : null,
     locks,
     vesting: schedules,
     links: {

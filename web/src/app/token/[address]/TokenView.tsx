@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 import { erc20Abi, type Address } from "viem";
-import { contracts, elysium, explorerAddress, siteUrl } from "@/lib/config";
+import { contracts, elysium, explorerAddress, explorerTx, siteUrl } from "@/lib/config";
 import { lockerAbi, vestingAbi } from "@/lib/abis";
 import { countdown, fmtAmount, fmtDate, short } from "@/lib/format";
 import { useMounted } from "@/lib/useMounted";
@@ -16,7 +16,7 @@ const now = () => Math.floor(Date.now() / 1000);
 type LockT = { token: Address; owner: Address; amount: bigint; unlockAt: bigint; createdAt: bigint; isLP: boolean; withdrawn: boolean };
 type SchedT = { token: Address; beneficiary: Address; total: bigint; released: bigint; start: bigint; cliff: bigint; duration: bigint; revoked: boolean };
 
-export function TokenView({ token }: { token: Address }) {
+export function TokenView({ token, montra }: { token: Address; montra?: { launchTx: string; poolId: string } | null }) {
   const meta = useReadContracts({
     contracts: [
       { chainId: cid, address: token, abi: erc20Abi, functionName: "symbol" },
@@ -81,9 +81,21 @@ export function TokenView({ token }: { token: Address }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
         <div className="panel">
           <div className="eyebrow">Liquidity locked</div>
-          <div style={{ fontSize: 34, fontWeight: 300 }}>{bestLp?.share !== undefined ? `${bestLp.share}%` : "None"}</div>
+          <div style={{ fontSize: 34, fontWeight: 300 }}>{bestLp?.share !== undefined ? `${bestLp.share}%` : montra ? "Sealed" : "None"}</div>
           <div className="eyebrow">
-            {bestLp ? `of the LP · ${bestLp.dex ?? "pair"} ${short(bestLp.pair)}` : hasUnverified ? "LP locks found, but no pair from a known DEX" : "No LP locked on Elyport"}
+            {bestLp ? (
+              `of the LP · ${bestLp.dex ?? "pair"} ${short(bestLp.pair)}`
+            ) : montra ? (
+              <>
+                Launch liquidity in its Montra pool, with no function to remove it ·{" "}
+                <a href={`https://montramarkets.xyz/docs/trading`} target="_blank" rel="noreferrer">how</a> ·{" "}
+                <a href={explorerTx(montra.launchTx)} target="_blank" rel="noreferrer">launch tx</a>
+              </>
+            ) : hasUnverified ? (
+              "LP locks found, but no pair from a known DEX"
+            ) : (
+              "No LP locked on Elyport"
+            )}
           </div>
         </div>
         <div className="panel">
