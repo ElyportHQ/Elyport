@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { contracts, elysium, explorerAddress, sourceChains } from "@/lib/config";
+import { contracts, elysium, explorerAddress, githubUrl, sourceChains } from "@/lib/config";
 
 export const metadata: Metadata = { title: "Docs", description: "How Elyport works: Refuel, Gas Drop, Locker, Vesting, fees, limits and contracts." };
 
@@ -105,6 +105,13 @@ export default function DocsPage() {
           <p>Exact fees are read from the contracts and shown before you confirm.</p>
 
           <h2 id="contracts">Contracts</h2>
+          <p>
+            Every contract is open source and verified on its explorer. Read the code, tests and deploy scripts on{" "}
+            <a href={githubUrl} target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+            .
+          </p>
           <ul>
             {deployed.map(([name, a]) => (
               <li key={name}>

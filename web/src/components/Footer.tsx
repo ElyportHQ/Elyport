@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useBlockNumber } from "wagmi";
-import { elysium } from "@/lib/config";
+import { elysium, githubUrl, xUrl } from "@/lib/config";
 
 export function LiveBlock() {
   const { data } = useBlockNumber({ chainId: elysium.id, watch: true, query: { refetchInterval: 4000 } });
@@ -20,7 +20,14 @@ export function SiteFooter() {
         <LiveBlock />
         <span>
           Elyport is an independent tool. Not affiliated with Kinetiq or Elysium. ·{" "}
-          <Link href="/terms">Terms</Link> · <Link href="/risk">Risk</Link>
+          <Link href="/terms">Terms</Link> · <Link href="/risk">Risk</Link> ·{" "}
+          <a href={githubUrl} target="_blank" rel="noreferrer">
+            GitHub
+          </a>{" "}
+          ·{" "}
+          <a href={xUrl} target="_blank" rel="noreferrer">
+            X
+          </a>
         </span>
       </div>
     </footer>
@@ -58,8 +65,11 @@ export function HomeFooter() {
           </div>
           <div>
             <span className="eyebrow">Elyport</span>
-            <a href="https://x.com/ElyportHQ" target="_blank" rel="noreferrer">
+            <a href={xUrl} target="_blank" rel="noreferrer">
               X
+            </a>
+            <a href={githubUrl} target="_blank" rel="noreferrer">
+              GitHub
             </a>
             <Link href="/terms">Terms</Link>
             <Link href="/privacy">Privacy</Link>

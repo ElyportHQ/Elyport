@@ -1,5 +1,7 @@
 "use client";
 
+import { githubUrl, xUrl } from "@/lib/config";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -104,6 +106,12 @@ export function TopBar() {
             <Link href="/docs" onClick={() => setOpen(false)}>
               Docs
             </Link>
+            <a href={githubUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}>
+              GitHub
+            </a>
+            <a href={xUrl} target="_blank" rel="noreferrer" onClick={() => setOpen(false)}>
+              X
+            </a>
           </div>
           <button
             type="button"

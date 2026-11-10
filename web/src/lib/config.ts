@@ -115,6 +115,9 @@ export const sourceChains: SourceChain[] = [
   },
 ];
 
+export const githubUrl = "https://github.com/ElyportHQ/Elyport";
+export const xUrl = "https://x.com/ElyportHQ";
+
 export const REFUEL_FEE_BPS = 50; // 0.5%
 export const REFUEL_PRESETS_USD = [1, 3, 5, 10];
 export const REFUEL_MAX_USD = 10;
