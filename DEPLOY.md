@@ -11,13 +11,14 @@ smoke test in step 5 with tiny amounts, and only then raise the caps and top up 
 
 1. Fund the wallets (table below).
 2. Repo → Settings → Secrets and variables → Actions → **New repository secret**:
-   name `DEPLOYER_PRIVATE_KEY`, value = the **owner** wallet's private key.
+   name `DEPLOYER_PRIVATE_KEY`, value = the **deployer** wallet's private key.
 3. Repo → Actions → **Deploy contracts** → Run workflow → target `all`, confirm `DEPLOY`.
 4. The run summary lists every address as a ready-to-paste env line for Vercel.
 5. **Delete the secret** right after the run.
 
-The workflow (`.github/workflows/deploy.yml`) has the owner, fee recipient, relayer, fees and launch caps
-built in, runs the test suite first, and deploys the deposit contracts one chain at a time.
+The workflow (`.github/workflows/deploy.yml`) has the deployer, owner, fee recipient, relayer, fees and launch
+caps built in, runs the test suite first, and deploys the deposit contracts one chain at a time. Ownership goes
+straight to the owner and the relayer and limits are set in the constructors, so the owner wallet sends nothing.
 
 ## Option B: deploy from your own terminal
 
@@ -25,7 +26,8 @@ built in, runs the test suite first, and deploys the deposit contracts one chain
 
 | Wallet | Holds | Used for |
 | --- | --- | --- |
-| **Deployer / owner** | A little HYPE on Elysium + gas on each source chain | Deploys and configures the contracts. Later hand ownership to a multisig with `transferOwnership` + `acceptOwnership` (Ownable2Step). |
+| **Deployer** | A little HYPE on Elysium + gas on each source chain | Sends the deploy transactions. Has no rights over the contracts afterwards. |
+| **Owner** | Nothing to start | Admin: fees, caps, pause, relayer, sweeps. Later hand to a multisig with `transferOwnership` + `acceptOwnership` (Ownable2Step). |
 | **Fee recipient** | Nothing needed | Receives every Locker, Vesting and Gas Drop fee. A multisig or a cold wallet. |
 | **Relayer** | HYPE on Elysium + native gas on every source chain | Signs `dispense` on Elysium and `markFulfilled` / `refund` on source chains. A fresh hot wallet, used for nothing else. |
 
@@ -40,7 +42,7 @@ forge install OpenZeppelin/openzeppelin-contracts@v5.1.0 --no-git
 forge test
 
 export ELYSIUM_RPC_URL=https://rpc.elysium.kinetiq.xyz
-export OWNER=0xYourDeployer            # same as the deployer, so the script can set the relayer
+export OWNER=0xYourOwner               # receives ownership directly; the deployer can be any wallet
 export FEE_RECIPIENT=0xYourFeeWallet
 export RELAYER=0xYourRelayer
 export LOCK_FEE_WEI=250000000000000000      # ≈ $10
@@ -72,7 +74,7 @@ Repeat for Base, Arbitrum, Ethereum, Robinhood Chain, BNB Chain and HyperEVM (sk
 | Robinhood Chain, BNB Chain, HyperEVM | leave empty (native only) |
 
 ```bash
-export OWNER=0xYourDeployer RELAYER=0xYourRelayer
+export OWNER=0xYourOwner RELAYER=0xYourRelayer
 export USDC=0x...        # from the table, or unset
 export USDC_MIN=1000000 USDC_MAX=10000000          # $1 to $10 (6 decimals)
 export NATIVE_MIN_WEI=...  NATIVE_MAX_WEI=...      # ≈ $1 and ≈ $10 of the chain's coin

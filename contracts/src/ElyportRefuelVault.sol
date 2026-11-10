@@ -36,10 +36,19 @@ contract ElyportRefuelVault is Ownable2Step, Pausable, ReentrancyGuard {
     event Dispensed(bytes32 indexed depositKey, address indexed to, uint256 amount);
     event Withdrawn(address indexed to, uint256 amount);
 
-    constructor(address initialOwner, uint256 maxPerTx_, uint256 maxPerWalletPerDay_, uint256 maxPerDay_)
-        Ownable(initialOwner)
-    {
+    /// @param initialRelayer Optional; set here so a separate deployer needs no owner transactions.
+    constructor(
+        address initialOwner,
+        address initialRelayer,
+        uint256 maxPerTx_,
+        uint256 maxPerWalletPerDay_,
+        uint256 maxPerDay_
+    ) Ownable(initialOwner) {
         _setCaps(maxPerTx_, maxPerWalletPerDay_, maxPerDay_);
+        if (initialRelayer != address(0)) {
+            isRelayer[initialRelayer] = true;
+            emit RelayerSet(initialRelayer, true);
+        }
     }
 
     receive() external payable {

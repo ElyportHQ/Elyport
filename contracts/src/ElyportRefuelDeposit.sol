@@ -61,7 +61,30 @@ contract ElyportRefuelDeposit is Ownable2Step, Pausable, ReentrancyGuard {
     event LimitsSet(address indexed token, bool allowed, uint256 min, uint256 max);
     event RelayerSet(address indexed relayer, bool allowed);
 
-    constructor(address initialOwner) Ownable(initialOwner) {}
+    /// @notice Everything is configured at deploy time, so a separate deployer needs no owner transactions.
+    /// @param nativeMax 0 leaves native deposits off. @param token address(0) leaves token deposits off.
+    constructor(
+        address initialOwner,
+        address initialRelayer,
+        uint256 nativeMin,
+        uint256 nativeMax,
+        address token,
+        uint256 tokenMin,
+        uint256 tokenMax
+    ) Ownable(initialOwner) {
+        if (initialRelayer != address(0)) {
+            isRelayer[initialRelayer] = true;
+            emit RelayerSet(initialRelayer, true);
+        }
+        if (nativeMax > 0) {
+            limits[address(0)] = TokenLimits(true, nativeMin, nativeMax);
+            emit LimitsSet(address(0), true, nativeMin, nativeMax);
+        }
+        if (token != address(0)) {
+            limits[token] = TokenLimits(true, tokenMin, tokenMax);
+            emit LimitsSet(token, true, tokenMin, tokenMax);
+        }
+    }
 
     function depositNative(address recipient) external payable whenNotPaused returns (uint256 id) {
         id = _record(recipient, address(0), msg.value);

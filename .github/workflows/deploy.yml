@@ -1,9 +1,10 @@
 name: Deploy contracts
 
 # Manual mainnet deploy. Runs only when started by hand from the Actions tab.
-# Needs the secret DEPLOYER_PRIVATE_KEY (the OWNER wallet's key), stored as a repository
-# or "mainnet" environment secret. The key never appears in logs. Delete the secret after
-# the deploy is done.
+# Needs the secret DEPLOYER_PRIVATE_KEY (the DEPLOYER wallet's key), stored as a repository
+# or "mainnet" environment secret. The key never appears in logs. Ownership goes straight to
+# OWNER and every setting is passed to the constructors, so the owner sends nothing.
+# Delete the secret after the deploy is done.
 
 on:
   workflow_dispatch:
@@ -27,6 +28,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  DEPLOYER: "0xeef91Cb629641681dc2C8e86D5165cDb409115F3"
   OWNER: "0x90D772A278F559853524C4803A27ba51324638dc"
   FEE_RECIPIENT: "0xb3A4886c9F42Dd34F65a1B0DA7A3a7e3b0F72014"
   RELAYER: "0x48Ee3081A156D0713c86C0a3360bABb07b823dB2"
@@ -80,7 +82,7 @@ jobs:
         run: |
           if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then echo "::error::Secret DEPLOYER_PRIVATE_KEY is not set."; exit 1; fi
           forge script script/Deploy.s.sol:DeployElysium \
-            --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$OWNER" \
+            --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$DEPLOYER" \
             --broadcast --slow --gas-estimate-multiplier 200
       - name: Summary
         if: always()
@@ -203,7 +205,7 @@ jobs:
           if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then echo "::error::Secret DEPLOYER_PRIVATE_KEY is not set."; exit 1; fi
           [ -n "$USDC" ] || unset USDC
           forge script script/Deploy.s.sol:DeploySource \
-            --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$OWNER" \
+            --rpc-url "$RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY" --sender "$DEPLOYER" \
             --broadcast --slow --gas-estimate-multiplier "$MULT"
       - name: Summary
         if: always() && steps.decide.outputs.run == 'true'

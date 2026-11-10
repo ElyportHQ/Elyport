@@ -9,6 +9,8 @@ import {ElyportRefuelVault} from "../src/ElyportRefuelVault.sol";
 import {ElyportRefuelDeposit} from "../src/ElyportRefuelDeposit.sol";
 
 /// @notice Deploys the Elysium-side contracts.
+/// The deployer can be any funded wallet: ownership goes straight to OWNER and every setting is
+/// passed to the constructors, so the owner never has to send a transaction.
 /// forge script script/Deploy.s.sol:DeployElysium --rpc-url $ELYSIUM_RPC_URL --broadcast --private-key $DEPLOYER_KEY
 /// Env: OWNER, FEE_RECIPIENT, RELAYER, LOCK_FEE_WEI, VESTING_FEE_WEI, DROP_FEE_WEI,
 ///      VAULT_MAX_PER_TX_WEI, VAULT_MAX_PER_WALLET_DAY_WEI, VAULT_MAX_PER_DAY_WEI
@@ -24,12 +26,11 @@ contract DeployElysium is Script {
         ElyportDrop drop = new ElyportDrop(owner, feeRecipient, vm.envUint("DROP_FEE_WEI"));
         ElyportRefuelVault vault = new ElyportRefuelVault(
             owner,
+            relayer,
             vm.envUint("VAULT_MAX_PER_TX_WEI"),
             vm.envUint("VAULT_MAX_PER_WALLET_DAY_WEI"),
             vm.envUint("VAULT_MAX_PER_DAY_WEI")
         );
-        // The relayer can only be set here when the deployer is also the owner.
-        if (relayer != address(0) && owner == msg.sender) vault.setRelayer(relayer, true);
         vm.stopBroadcast();
 
         console2.log("NEXT_PUBLIC_LOCKER_ADDRESS=%s", address(locker));
@@ -39,7 +40,7 @@ contract DeployElysium is Script {
     }
 }
 
-/// @notice Deploys the deposit contract on a source chain (Ethereum, Base, Arbitrum, BNB Chain, HyperEVM).
+/// @notice Deploys the deposit contract on a source chain (Ethereum, Base, Arbitrum, Robinhood Chain, BNB Chain, HyperEVM).
 /// Env: OWNER, RELAYER, USDC (optional), USDC_MIN, USDC_MAX, NATIVE_MIN_WEI, NATIVE_MAX_WEI
 contract DeploySource is Script {
     function run() external {
@@ -48,12 +49,15 @@ contract DeploySource is Script {
         address usdc = vm.envOr("USDC", address(0));
 
         vm.startBroadcast();
-        ElyportRefuelDeposit dep = new ElyportRefuelDeposit(owner);
-        if (owner == msg.sender) {
-            if (relayer != address(0)) dep.setRelayer(relayer, true);
-            dep.setLimits(address(0), true, vm.envUint("NATIVE_MIN_WEI"), vm.envUint("NATIVE_MAX_WEI"));
-            if (usdc != address(0)) dep.setLimits(usdc, true, vm.envUint("USDC_MIN"), vm.envUint("USDC_MAX"));
-        }
+        ElyportRefuelDeposit dep = new ElyportRefuelDeposit(
+            owner,
+            relayer,
+            vm.envUint("NATIVE_MIN_WEI"),
+            vm.envUint("NATIVE_MAX_WEI"),
+            usdc,
+            usdc != address(0) ? vm.envUint("USDC_MIN") : 0,
+            usdc != address(0) ? vm.envUint("USDC_MAX") : 0
+        );
         vm.stopBroadcast();
 
         console2.log("Refuel deposit on chain %s: %s", block.chainid, address(dep));

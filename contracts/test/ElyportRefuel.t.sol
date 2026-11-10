@@ -15,15 +15,10 @@ contract ElyportRefuelTest is Test {
     address user = makeAddr("user");
 
     function setUp() public {
-        vault = new ElyportRefuelVault(owner, 1 ether, 2 ether, 50 ether);
-        deposit = new ElyportRefuelDeposit(owner);
         usdc = new MockToken();
-        vm.startPrank(owner);
-        vault.setRelayer(relayer, true);
-        deposit.setRelayer(relayer, true);
-        deposit.setLimits(address(usdc), true, 1e6, 10e6);
-        deposit.setLimits(address(0), true, 0.0003 ether, 0.004 ether);
-        vm.stopPrank();
+        // Configured entirely in the constructors, as a separate deployer would do.
+        vault = new ElyportRefuelVault(owner, relayer, 1 ether, 2 ether, 50 ether);
+        deposit = new ElyportRefuelDeposit(owner, relayer, 0.0003 ether, 0.004 ether, address(usdc), 1e6, 10e6);
         vm.deal(address(vault), 10 ether);
         vm.deal(user, 1 ether);
         usdc.mint(user, 100e6);
@@ -126,6 +121,27 @@ contract ElyportRefuelTest is Test {
         deposit.sweep(address(usdc), owner, 5e6);
         assertEq(usdc.balanceOf(owner), 5e6);
         assertEq(deposit.reserved(address(usdc)), 4e6);
+    }
+
+    function test_ConstructorConfig() public view {
+        assertEq(vault.owner(), owner);
+        assertTrue(vault.isRelayer(relayer));
+        assertEq(deposit.owner(), owner);
+        assertTrue(deposit.isRelayer(relayer));
+        (bool nOk, uint256 nMin, uint256 nMax) = deposit.limits(address(0));
+        (bool uOk, uint256 uMin, uint256 uMax) = deposit.limits(address(usdc));
+        assertTrue(nOk && uOk);
+        assertEq(nMin, 0.0003 ether);
+        assertEq(nMax, 0.004 ether);
+        assertEq(uMin, 1e6);
+        assertEq(uMax, 10e6);
+    }
+
+    function test_ConstructorLeavesTokenOff() public {
+        ElyportRefuelDeposit d = new ElyportRefuelDeposit(owner, address(0), 1, 2, address(0), 0, 0);
+        assertFalse(d.isRelayer(relayer));
+        (bool uOk,,) = d.limits(address(usdc));
+        assertFalse(uOk);
     }
 }
 
