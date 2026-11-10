@@ -1,0 +1,102 @@
+name: Verify contracts
+
+# Publishes the source of every deployed contract so anyone can read it on the explorers.
+# No keys needed: Elysium uses its Blockscout API, every other chain uses Sourcify.
+# If the repository secret ETHERSCAN_API_KEY (Etherscan V2) exists, the Etherscan-family
+# explorers (Etherscan, Basescan, Arbiscan, BscScan, HyperEVMScan) are verified too.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  OWNER: "0x90D772A278F559853524C4803A27ba51324638dc"
+  FEE_RECIPIENT: "0xb3A4886c9F42Dd34F65a1B0DA7A3a7e3b0F72014"
+  RELAYER: "0x48Ee3081A156D0713c86C0a3360bABb07b823dB2"
+
+jobs:
+  elysium:
+    name: Elysium
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      VERIFIER_URL: https://elysium.kinetiq.xyz/explorer/api/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Install libraries
+        run: |
+          forge install foundry-rs/forge-std@v1.9.4 --no-git
+          forge install OpenZeppelin/openzeppelin-contracts@v5.1.0 --no-git
+          forge build
+      - name: Verify
+        run: |
+          v() { # address, contract, encoded args
+            forge verify-contract "$1" "$2" --chain-id 99901 --verifier blockscout --verifier-url "$VERIFIER_URL" \
+              --constructor-args "$3" --watch || echo "::warning::Blockscout verification failed for $2"
+            forge verify-contract "$1" "$2" --chain-id 99901 --verifier sourcify \
+              --constructor-args "$3" || echo "::warning::Sourcify verification failed for $2"
+          }
+          v 0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39 src/ElyportLocker.sol:ElyportLocker \
+            "$(cast abi-encode 'c(address,address,uint256)' $OWNER $FEE_RECIPIENT 133000000000000000)"
+          v 0xb5cedd59dd57d9145ff6d5fca3fb171304f055f7 src/ElyportVesting.sol:ElyportVesting \
+            "$(cast abi-encode 'c(address,address,uint256)' $OWNER $FEE_RECIPIENT 133000000000000000)"
+          v 0x9e5dc700de34a441e1d0b74fc88d1b1f666ff9b4 src/ElyportDrop.sol:ElyportDrop \
+            "$(cast abi-encode 'c(address,address,uint256)' $OWNER $FEE_RECIPIENT 40000000000000000)"
+          v 0xa43e860ec638b039cb926e98590852c2fdcbcf65 src/ElyportRefuelVault.sol:ElyportRefuelVault \
+            "$(cast abi-encode 'c(address,address,uint256,uint256,uint256)' $OWNER $RELAYER 160000000000000000 300000000000000000 1400000000000000000)"
+
+  sources:
+    name: Deposit on ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Ethereum, chain_id: 1, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", nmin: "450000000000000", nmax: "5000000000000000" }
+          - { name: Base, chain_id: 8453, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", nmin: "450000000000000", nmax: "5000000000000000" }
+          - { name: Arbitrum, chain_id: 42161, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", nmin: "450000000000000", nmax: "5000000000000000" }
+          - { name: Robinhood Chain, chain_id: 4663, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "", nmin: "450000000000000", nmax: "5000000000000000" }
+          - { name: BNB Chain, chain_id: 56, address: "0xc051f16eab3b7c2a74fabc4dd0acfa5b5d5f4c39", usdc: "", nmin: "1400000000000000", nmax: "15000000000000000" }
+          - { name: HyperEVM, chain_id: 999, address: "0x739a2b5d9ea7647ecc2de63c67ed04fe4a432c3e", usdc: "", nmin: "13000000000000000", nmax: "140000000000000000" }
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Install libraries
+        run: |
+          forge install foundry-rs/forge-std@v1.9.4 --no-git
+          forge install OpenZeppelin/openzeppelin-contracts@v5.1.0 --no-git
+          forge build
+      - name: Verify
+        env:
+          CHAIN_ID: ${{ matrix.chain_id }}
+          ADDR: ${{ matrix.address }}
+          USDC: ${{ matrix.usdc }}
+          NMIN: ${{ matrix.nmin }}
+          NMAX: ${{ matrix.nmax }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        run: |
+          if [ -n "$USDC" ]; then
+            ARGS=$(cast abi-encode 'c(address,address,uint256,uint256,address,uint256,uint256)' $OWNER $RELAYER $NMIN $NMAX $USDC 1000000 10000000)
+          else
+            ARGS=$(cast abi-encode 'c(address,address,uint256,uint256,address,uint256,uint256)' $OWNER $RELAYER $NMIN $NMAX 0x0000000000000000000000000000000000000000 0 0)
+          fi
+          C=src/ElyportRefuelDeposit.sol:ElyportRefuelDeposit
+          forge verify-contract "$ADDR" "$C" --chain-id "$CHAIN_ID" --verifier sourcify --constructor-args "$ARGS" \
+            || echo "::warning::Sourcify verification failed"
+          if [ -n "$ETHERSCAN_API_KEY" ] && [ "$CHAIN_ID" != "4663" ]; then
+            forge verify-contract "$ADDR" "$C" --chain-id "$CHAIN_ID" --verifier etherscan --etherscan-api-key "$ETHERSCAN_API_KEY" \
+              --constructor-args "$ARGS" --watch || echo "::warning::Etherscan verification failed"
+          fi
+          if [ "$CHAIN_ID" = "4663" ]; then
+            forge verify-contract "$ADDR" "$C" --chain-id 4663 --verifier blockscout \
+              --verifier-url https://robinhoodchain.blockscout.com/api/ --constructor-args "$ARGS" --watch \
+              || echo "::warning::Blockscout verification failed"
+          fi
