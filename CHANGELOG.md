@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+- **Official $ELYPORT token, detected automatically**: once launched on Montra from the dev wallet, the contract address
+  appears on the home page, `/docs/status` and `/api/v1/official`. Montra's API only suggests candidates; each one is
+  verified on-chain (launch receipt from the dev wallet, TokenLaunched from Montra's factory, `creator()` and `symbol()`).
+
 ### Security
 - **48-hour timelock** (`ElyportTimelock`, `0x51aed68990a24D6e2712d98e7837F3d89269D06e`) becomes owner of the Locker,
   Vesting, Gas Drop and LP checker. Fee, fee recipient, discount and DEX list changes are public 48 hours ahead on

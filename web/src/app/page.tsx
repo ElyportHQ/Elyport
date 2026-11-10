@@ -3,6 +3,9 @@ import { CtaScene, FanOut, HeroScene, LockRing, RouteViz, TokenGauge, VestBars }
 import { ActivityTicker, LiveStats } from "@/components/home/LiveStats";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HomeFooter } from "@/components/Footer";
+import { OfficialToken } from "@/components/OfficialToken";
+
+export const revalidate = 60;
 
 const steps = [
   { n: "01", t: "Connect", d: "MetaMask, Rabby, OKX, Coinbase or any WalletConnect wallet.", href: "/refuel", cta: "Connect wallet" },
@@ -41,6 +44,10 @@ export default function Home() {
           </Link>
         </div>
       </HeroSection>
+
+      <section className="container" style={{ paddingTop: 48, paddingBottom: 8 }}>
+        <OfficialToken />
+      </section>
 
       <section style={{ position: "relative", padding: "120px 24px 40px", textAlign: "center", overflow: "hidden" }}>
         <div className="glow-bg" aria-hidden="true" />

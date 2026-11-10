@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Callout, H2 } from "@/components/docs/blocks";
 import { DocPage } from "@/components/docs/DocPage";
 import { StatusCards } from "@/components/docs/StatusCards";
+import { OfficialToken } from "@/components/OfficialToken";
 import { runMonitor, type MonitorReport } from "@/lib/refuelMonitor";
 import { getStatus, type StatusReport } from "@/lib/status";
 
@@ -26,6 +27,9 @@ export default async function StatusDoc() {
       updated={when}
       lead="Everything on this page is read straight from the chain, refreshed about once a minute. Nothing here is typed in by hand."
     >
+      <H2 id="token">Official token</H2>
+      <OfficialToken compact />
+
       <H2 id="relayer">Refuel delivery check</H2>
       <p>
         Every 15 minutes a stand-alone script confirms that every refuel marked as delivered was really paid out by the vault,

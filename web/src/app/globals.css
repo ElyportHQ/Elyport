@@ -574,3 +574,17 @@ body:has(.ew-page) { background: transparent; }
 .st-banner.is-bad { background: #fbe9ef; border-color: #f2cbd8; } .st-banner.is-bad strong { color: #9c2e57; }
 .st-banner.is-warn { background: #fdf4ec; border-color: #f2dcc6; } .st-banner.is-warn strong { color: #a8611f; }
 .st-note { font-size: 13px; color: var(--body); }
+
+/* Official token */
+.official { max-width: 640px; margin: 0 auto; padding: 18px 20px; border-radius: 20px; border: 1px solid var(--line); background: #fff; display: grid; gap: 12px; text-align: left; box-shadow: 0 10px 30px rgba(20, 24, 40, 0.06); }
+.official-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.official-ticker { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+.official-pill { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; background: var(--pearl); color: var(--muted); }
+.official-pill.live { background: #e3f6ee; color: #1d7a5b; }
+.official-ca { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--pearl); color: var(--ink); font-size: 13px; cursor: pointer; text-align: left; }
+.official-ca span { overflow-wrap: anywhere; }
+.official-ca strong { flex: none; font-size: 12.5px; color: var(--indigo-ink); }
+.official-links { display: flex; gap: 16px; font-size: 14px; }
+.official-links a { color: var(--indigo-ink); text-decoration: none; }
+.official-note { margin: 0; font-size: 13.5px; color: var(--muted); }
+.official.compact { box-shadow: none; }
