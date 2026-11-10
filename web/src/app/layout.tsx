@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
 import { TopBar } from "@/components/TopBar";
 import { SiteFooter } from "@/components/Footer";
 import { siteUrl } from "@/lib/config";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist", weight: ["300", "400", "500", "600"] });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", weight: ["400", "500"] });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", weight: ["800"] });
+// Self-hosted (SIL OFL) so builds never depend on reaching Google Fonts.
+const geist = localFont({ src: "./fonts/Geist-latin.woff2", variable: "--font-geist", weight: "300 600", display: "swap" });
+const geistMono = localFont({ src: "./fonts/GeistMono-latin.woff2", variable: "--font-geist-mono", weight: "400 500", display: "swap" });
+const manrope = localFont({ src: "./fonts/Manrope-800-latin.woff2", variable: "--font-manrope", weight: "800", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
