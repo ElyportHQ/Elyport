@@ -77,7 +77,13 @@ async function build(token: Address): Promise<HolderList> {
 
   // Flag contracts (pools, lockers, vaults) among the largest holders. EIP-7702 wallets count as wallets.
   const checked = list.slice(0, CODE_CHECK_LIMIT);
-  const codes = await Promise.all(checked.map(([a]) => c.getCode({ address: a as Address }).catch(() => undefined)));
+  const plain = createPublicClient({ chain: elysium, transport: http(process.env.ELYSIUM_RPC_URL_SERVER || undefined, { retryCount: 5, retryDelay: 700, timeout: 15_000 }) });
+  const codes: (string | undefined)[] = new Array(checked.length);
+  for (let i = 0; i < checked.length; i += 8) {
+    const part = checked.slice(i, i + 8);
+    const got = await Promise.all(part.map(([a]) => plain.getCode({ address: a as Address }).catch(() => undefined)));
+    got.forEach((g, j) => (codes[i + j] = g));
+  }
   const holders: Holder[] = list.map(([a, v], i) => {
     const code = i < CODE_CHECK_LIMIT ? codes[i] : undefined;
     const isContract = !!code && code !== "0x" && !code.toLowerCase().startsWith("0xef0100");
@@ -98,5 +104,5 @@ async function build(token: Address): Promise<HolderList> {
 
 /** Cached per token for 5 minutes. */
 export function getHolders(token: Address): Promise<HolderList> {
-  return unstable_cache(() => build(token), ["holders-v1", token.toLowerCase()], { revalidate: 300 })();
+  return unstable_cache(() => build(token), ["holders-v2", token.toLowerCase()], { revalidate: 300 })();
 }
