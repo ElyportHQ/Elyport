@@ -221,9 +221,14 @@ export function AdminConsole() {
         ))}
       </section>
 
-      {isOwner && allTimelocked && (
+      {isOwner && allPending && (
         <section className="panel" style={{ display: "grid", gap: 12 }}>
           <h2 style={{ margin: 0, fontSize: 20 }}>3. Propose a change</h2>
+          {!allTimelocked && (
+            <p style={{ margin: 0, fontSize: 13.5, color: "var(--muted)" }}>
+              You can schedule now. Execute the ownership hand-over first, then this change; until then it will not run.
+            </p>
+          )}
           <select className="input" value={action} onChange={(e) => { setAction(e.target.value as Action); setV1(""); setV2(""); setV3(""); }}>
             {Object.entries(actions).map(([k, l]) => (
               <option key={k} value={k}>
