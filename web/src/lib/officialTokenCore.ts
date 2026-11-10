@@ -1,4 +1,4 @@
-import { parseAbi, parseAbiItem, type Address, type PublicClient } from "viem";
+import { getAddress, parseAbi, parseAbiItem, type Address, type PublicClient } from "viem";
 
 /**
  * The official $ELYPORT token, found on-chain with no manual step.
@@ -71,7 +71,7 @@ async function verify(c: PublicClient, o: FinderOptions, token: Address, launchT
       sameAddr(`0x${(l.topics[1] ?? "").slice(26)}`, token) &&
       sameAddr(`0x${(l.topics[2] ?? "").slice(26)}`, o.dev),
   );
-  return ok ? { address: token, name, symbol, block: String(r.blockNumber) } : null;
+  return ok ? { address: getAddress(token), name, symbol, block: String(r.blockNumber) } : null;
 }
 
 type MontraCard = { address: Address; symbol: string; creator?: string; launchTx?: `0x${string}`; launchedAt?: number };
