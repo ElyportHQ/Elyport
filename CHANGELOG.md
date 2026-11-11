@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- **Refuel vault in the owner console:** balance, running or paused, top-up address, and Withdraw / Pause / Resume
+  for the owner wallet. The vault is not behind the timelock, so these act at once.
 - **Live usage on the home page:** "Elyport at a glance" now shows locks created, tokens locked, wallets reached by
   Gas Drop and HYPE delivered by Instant Refuel, read from the chain every 10 minutes.
 - **SEO for lock and token pages:** titles and descriptions read from the chain ("$EPP402 lock #4: locked until

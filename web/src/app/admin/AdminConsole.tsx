@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { encodeFunctionData, isAddress, keccak256, parseEther, toHex, zeroHash, type Address, type Hex, type PublicClient } from "viem";
-import { useAccount, usePublicClient, useReadContracts, useWriteContract } from "wagmi";
+import { encodeFunctionData, formatEther, isAddress, keccak256, parseEther, toHex, zeroHash, type Address, type Hex, type PublicClient } from "viem";
+import { useAccount, useBalance, usePublicClient, useReadContracts, useWriteContract } from "wagmi";
 import { contracts, elysium } from "@/lib/config";
 import { roles } from "@/lib/docs";
 import { ACCEPT_SALT, TIMELOCK_DELAY, ownedAbi, readOperations, timelockAbi, timelocked, type Operation } from "@/lib/timelock";
@@ -264,7 +264,117 @@ export function AdminConsole() {
         </section>
       )}
 
+      <VaultPanel isOwner={isOwner} />
+
       {state.message && <p className={state.status === "error" ? "error" : state.status === "success" ? "ok" : "note"}>{state.message}</p>}
     </div>
+  );
+}
+
+const vaultAbi = [
+  { type: "function", name: "owner", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
+  { type: "function", name: "paused", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
+  { type: "function", name: "withdraw", stateMutability: "nonpayable", inputs: [{ type: "address" }, { type: "uint256" }], outputs: [] },
+  { type: "function", name: "pause", stateMutability: "nonpayable", inputs: [], outputs: [] },
+  { type: "function", name: "unpause", stateMutability: "nonpayable", inputs: [], outputs: [] },
+] as const;
+
+/** Instant Refuel vault: stays with the owner wallet (not the timelock), so changes here apply at once. */
+function VaultPanel({ isOwner }: { isOwner: boolean }) {
+  const vault = contracts.refuelVault;
+  const { address } = useAccount();
+  const { writeContractAsync } = useWriteContract();
+  const { state, run } = useChainTx(cid);
+  const bal = useBalance({ chainId: cid, address: vault, query: { enabled: !!vault, refetchInterval: 30_000 } });
+  const reads = useReadContracts({
+    contracts: vault
+      ? [
+          { chainId: cid, address: vault, abi: vaultAbi, functionName: "owner" } as const,
+          { chainId: cid, address: vault, abi: vaultAbi, functionName: "paused" } as const,
+        ]
+      : [],
+    query: { enabled: !!vault },
+  });
+  const [to, setTo] = useState("");
+  const [amount, setAmount] = useState("");
+  if (!vault) return null;
+
+  const owner = reads.data?.[0]?.result as Address | undefined;
+  const paused = reads.data?.[1]?.result as boolean | undefined;
+  const canAct = isOwner && same(address, owner);
+  const busy = state.status === "pending";
+  const balance = bal.data?.value;
+  let wei: bigint | undefined;
+  try {
+    wei = amount ? parseEther(amount) : undefined;
+  } catch {
+    wei = undefined;
+  }
+  const valid = isAddress(to) && wei !== undefined && wei > 0n && (balance === undefined || wei <= balance);
+  const refresh = () => {
+    bal.refetch();
+    reads.refetch();
+  };
+
+  const withdraw = async () => {
+    if (!valid || wei === undefined) return;
+    const r = await run(`Withdraw ${amount} HYPE`, () => writeContractAsync({ chainId: cid, address: vault, abi: vaultAbi, functionName: "withdraw", args: [to as Address, wei] }));
+    if (r) {
+      setAmount("");
+      refresh();
+    }
+  };
+  const toggle = async () => {
+    const r = await run(paused ? "Resume Instant Refuel" : "Pause Instant Refuel", () =>
+      writeContractAsync({ chainId: cid, address: vault, abi: vaultAbi, functionName: paused ? "unpause" : "pause" }),
+    );
+    if (r) refresh();
+  };
+
+  return (
+    <section className="panel" style={{ display: "grid", gap: 12 }}>
+      <h2 style={{ margin: 0, fontSize: 20 }}>Refuel vault</h2>
+      <p style={{ margin: 0, fontSize: 14, color: "var(--muted)" }}>
+        Pays out Instant Refuel on Elysium. It stays with the owner wallet, not the timelock, so these act at once. With an empty or paused vault,
+        refuels wait until it is topped up or resumed.
+      </p>
+      <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+        <div>
+          <div className="eyebrow">Balance</div>
+          <div style={{ fontSize: 28 }}>{balance === undefined ? "…" : `${Number(formatEther(balance)).toLocaleString("en-US", { maximumFractionDigits: 4 })} HYPE`}</div>
+        </div>
+        <div>
+          <div className="eyebrow">Status</div>
+          <div style={{ fontSize: 28 }}>{paused === undefined ? "…" : paused ? "Paused" : "Running"}</div>
+        </div>
+      </div>
+      <p style={{ margin: 0, fontSize: 14 }}>
+        Top up by sending HYPE on Elysium to <code style={{ overflowWrap: "anywhere" }}>{vault}</code>.
+      </p>
+      {canAct ? (
+        <>
+          <div style={{ display: "grid", gap: 8 }}>
+            <input className="input" placeholder="Send to (0x…)" value={to} onChange={(e) => setTo(e.target.value.trim())} />
+            <div style={{ display: "flex", gap: 8 }}>
+              <input className="input" inputMode="decimal" placeholder="Amount in HYPE" value={amount} onChange={(e) => setAmount(e.target.value.trim())} style={{ flex: 1 }} />
+              <button type="button" className="btn btn-ghost" disabled={balance === undefined} onClick={() => balance !== undefined && setAmount(formatEther(balance))}>
+                Max
+              </button>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button type="button" className="btn btn-dark" disabled={!valid || busy} onClick={withdraw}>
+                Withdraw
+              </button>
+              <button type="button" className="btn btn-ghost" disabled={paused === undefined || busy} onClick={toggle}>
+                {paused ? "Resume refuels" : "Pause refuels"}
+              </button>
+            </div>
+          </div>
+          {state.message && <p className={state.status === "error" ? "error" : state.status === "success" ? "ok" : "note"}>{state.message}</p>}
+        </>
+      ) : (
+        <p className="note" style={{ margin: 0 }}>Connect the owner wallet to withdraw or pause.</p>
+      )}
+    </section>
   );
 }
